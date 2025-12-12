@@ -1,0 +1,57 @@
+@model MunicipalityApp.Models.BlogPost
+@{
+    ViewData["Title"] = "Post Details";
+}
+
+<h2 class="mb-3">Post Details</h2>
+
+<div class="card">
+    <div class="card-body">
+        <div class="mb-3">
+            <strong>By:</strong> @Model.Username
+            <span class="text-muted"> · @Model.Timestamp.ToString("yyyy-MM-dd HH:mm") GMT+2</span>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.MediaPath))
+        {
+            <img src="@Model.MediaPath" class="img-fluid mb-3" style="max-height:420px;object-fit:contain;" />
+        }
+
+        <p>@Model.Description</p>
+
+        <p>
+            <strong>Hashtags:</strong>
+            @if (Model.Hashtags?.Any() == true)
+            {
+                foreach (var h in Model.Hashtags)
+                {
+                    <span class="badge text-bg-light me-1">@h</span>
+                }
+            }
+            else
+            {
+
+                <span class="text-muted">—</span>
+            }
+        </p>
+
+        <p><strong>Location:</strong> @(string.IsNullOrWhiteSpace(Model.Location) ? "—" : Model.Location)</p>
+        <p><strong>Likes:</strong> @Model.Likes</p>
+
+        <p>
+            <strong>Share URL:</strong>
+            @if (!string.IsNullOrWhiteSpace(Model.ShareUrl))
+            {
+                <a href="@Model.ShareUrl" target="_blank">@Model.ShareUrl</a>
+            }
+            else
+            {
+
+                <span class="text-muted">—</span>
+            }
+        </p>
+
+        <a asp-action="Index" class="btn btn-secondary">Back</a>
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a>
+    </div>
+</div>

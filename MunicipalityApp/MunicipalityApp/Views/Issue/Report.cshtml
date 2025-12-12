@@ -1,0 +1,610 @@
+@{
+    ViewData["Title"] = "Report Issue";
+    var message = TempData["Message"] as string;
+    var categories = ViewBag.Categories as List<string>;
+    var leaderboard = ViewBag.Leaderboard as List<(string, int, List<MunicipalityApp.Models.Issue>)>;
+}
+
+<style>
+    :root {
+        --primary-blue: #004d9e;
+        --light-blue: #007ac3;
+        --dark-gray: #333;
+        --light-gray: #f2f2f2;
+        --text-color: #555;
+        --border-color: #ddd;
+        --gold-start: #FFD700;
+        --gold-end: #DAA520;
+        --silver-start: #C0C0C0;
+        --silver-end: #A9A9A9;
+        --bronze-start: #CD7F32;
+        --bronze-end: #8B4513;
+        --podium-blue: #0A2342;
+    }
+
+    .report-issue-container {
+        padding: 2rem 0;
+    }
+
+    .form-card {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        padding: 2.5rem;
+        backdrop-filter: blur(5px);
+    }
+
+    .form-header {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary-blue);
+        margin-bottom: 0.5rem;
+    }
+
+    .form-subtitle {
+        font-size: 1.1rem;
+        color: var(--dark-gray);
+        margin-bottom: 2rem;
+    }
+
+    .form-group .form-control,
+    .form-group .form-select,
+    .form-group .form-control-file {
+        background-color: var(--light-gray);
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+    }
+
+    .form-group .form-control:focus,
+    .form-group .form-select:focus,
+    .form-group .form-control-file:focus {
+        background-color: white;
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 0.25rem rgba(0, 77, 158, 0.25);
+    }
+
+    .btn-submit {
+        background-color: var(--primary-blue);
+        border-color: var(--primary-blue);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn-submit:hover {
+        background-color: var(--light-blue);
+        border-color: var(--light-blue);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Leaderboard Styles */
+    .leaderboard-container {
+        padding: 2rem 0;
+        margin-top: 3rem;
+    }
+
+    .leaderboard-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        color: var(--dark-gray);
+    }
+
+    .podium-grid {
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .podium-card {
+        background-color: var(--light-gray);
+        border-radius: 15px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        transition: transform 0.3s ease;
+        padding: 1.5rem;
+    }
+
+    .podium-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .podium-card.first-place {
+        background: linear-gradient(135deg, #FFDF00, #F0C419);
+        box-shadow: 0 10px 30px rgba(255, 215, 0, 0.5);
+        transform: scale(1.2);
+        z-index: 3;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .podium-card.first-place:hover {
+        transform: scale(1.25) translateY(-5px);
+    }
+
+    .podium-card.second-place {
+        background: linear-gradient(135deg, var(--silver-start), var(--silver-end));
+        transform: scale(1.1);
+        z-index: 2;
+        padding: 1.75rem;
+    }
+
+    .podium-card.second-place:hover {
+        transform: scale(1.15) translateY(-5px);
+    }
+
+    .podium-card.third-place {
+        background: linear-gradient(135deg, var(--bronze-start), var(--bronze-end));
+        transform: scale(1.0);
+        z-index: 1;
+        padding: 1.5rem;
+    }
+
+    .podium-card h4 {
+        margin-top: 0.5rem;
+        font-weight: 700;
+        color: var(--dark-gray);
+    }
+
+    .podium-card.first-place h4 {
+        color: #8B4513;
+    }
+
+    .podium-card .medal {
+        font-size: 3rem;
+        line-height: 1;
+    }
+
+    .issue-list {
+        list-style: none;
+        padding-left: 0;
+        margin-top: 1rem;
+        max-height: 100px;
+        overflow-y: auto;
+    }
+
+    .issue-list li {
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.3rem 0.5rem;
+        border-radius: 5px;
+    }
+
+    .custom-badge {
+        font-weight: bold;
+        padding: 0.3em 0.7em;
+        border-radius: 50px;
+        font-size: 0.85em;
+        display: inline-block;
+        margin-left: 0.5rem;
+    }
+
+    .gold-medal {
+        background: linear-gradient(45deg, #FFB800, #FFA500);
+        color: #A0522D;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    }
+
+    .silver-medal {
+        background: linear-gradient(45deg, var(--silver-start), var(--silver-end));
+        color: #333;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .bronze-medal {
+        background: linear-gradient(45deg, var(--bronze-start), var(--bronze-end));
+        color: white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Fancy Table Styles */
+    .fancy-table-container {
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    }
+
+    .fancy-table {
+        width: 100%;
+        border-collapse: collapse;
+        color: var(--dark-gray);
+    }
+
+    .fancy-table thead {
+        background-color: var(--podium-blue);
+        color: white;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .fancy-table th,
+    .fancy-table td {
+        padding: 1rem 1.5rem;
+        text-align: left;
+    }
+
+    .fancy-table tbody tr:nth-child(odd) {
+        background-color: white;
+    }
+
+    .fancy-table tbody tr:nth-child(even) {
+        background-color: var(--light-gray);
+    }
+
+    .fancy-table tbody tr:hover {
+        background-color: #e0e0e0;
+    }
+
+    /* Typing Animation Styles */
+    #encouragingMessageContainer {
+        min-height: 40px;
+        font-family: monospace;
+        text-align: center;
+        font-size: 1.1rem;
+        color: var(--dark-gray);
+        margin: 1.5rem 0;
+        /* Adjusted margin */
+    }
+
+    .message-box {
+        background-color: #e0f7fa;
+        /* A light, calming blue */
+        border: 1px solid #b2ebf2;
+        /* A slightly darker border */
+        border-radius: 10px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .typing-text {
+        overflow: hidden;
+        border-right: .15em solid orange;
+        white-space: nowrap;
+        animation: typing 3s steps(40, end), blink-caret .75s step-end infinite;
+    }
+
+    /* The typing effect */
+    @@keyframes typing {
+        from {
+            width: 0
+        }
+
+        to {
+            width: 100%
+        }
+    }
+
+    /* The typewriter cursor effect */
+    @@keyframes blink-caret {
+
+        from,
+        to {
+            border-color: transparent
+        }
+
+        50% {
+            border-color: orange;
+        }
+    }
+</style>
+
+<div class="row justify-content-center report-issue-container">
+    <div class="col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="form-header">Report an Issue</h1>
+                <p class="form-subtitle">Make our community a better place.</p>
+            </div>
+            <a asp-controller="Issue" asp-action="List" class="btn btn-primary btn-submit">
+                My Reported Issues
+            </a>
+        </div>
+
+        <div class="message-box">
+            <div id="encouragingMessageContainer"></div>
+        </div>
+
+        <div class="form-card">
+            <form id="reportForm" asp-action="Report" method="post" enctype="multipart/form-data">
+
+                @* *** LOCATION FIX START ***
+                    Replace single 'Location' text box with structured fields and a hidden input 
+                *@
+                <div class="mb-3 form-group">
+                    <label class="form-label">Location Details (Please be as specific as possible)</label>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <input type="text" id="AddressLine1" class="form-control location-part"
+                                placeholder="Street Number" required />
+                        </div>
+                        <div class="col-md-6">
+                            <input type="text" id="AddressLine2" class="form-control location-part"
+                                placeholder="Street Name" />
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <input type="text" id="Suburb" class="form-control location-part" placeholder="Suburb"
+                                required />
+                        </div>
+                        <div class="col-md-6">
+                            <input type="text" id="City" class="form-control location-part" placeholder="City"
+                                required />
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <input type="text" id="PostalCode" class="form-control location-part"
+                                placeholder="Postal Code (Optional)" />
+                        </div>
+                        <div class="col-md-6">
+                            <input type="text" id="LatLong" class="form-control location-part"
+                                placeholder="Latitude / Longitude (Optional)" />
+                        </div>
+                    </div>
+
+                    @* HIDDEN INPUT: This is what binds to the Issue.Location property on the server *@
+                    <input type="hidden" name="Location" id="CombinedLocation" value="" required />
+
+                </div>
+                @* *** LOCATION FIX END *** *@
+
+                <div class="mb-3 form-group">
+                    <label class="form-label">Category</label>
+                    <select name="category" class="form-select" required>
+                        <option value="">-- Select Category --</option>
+                        @foreach (var cat in categories ?? new List<string>())
+                        {
+                            <option value="@cat">@cat</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3 form-group">
+                    <label class="form-label">Description</label>
+                    <textarea name="description" class="form-control" rows="4" placeholder="Describe the issue"
+                        required></textarea>
+                </div>
+                <div class="mb-3 form-group">
+                    <label class="form-label">
+                        Attachment (Optional)
+                        <small class="text-muted">(Allowed file types: .jpg, .jpeg, .png, .gif, .mp4, .avi, .mov, .mkv,
+                            .pdf, .doc, .docx, .odt, .rtf, .txt)</small>
+                    </label>
+                    <input type="file" name="attachment" class="form-control" />
+                </div>
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-submit">Submit Report</button>
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Back to Main Menu</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="container leaderboard-container">
+    <h3 class="leaderboard-header">Top Community Contributors</h3>
+    @if (leaderboard != null && leaderboard.Any())
+    {
+        <div class="podium-grid">
+            @{
+                var firstPlace = leaderboard.Count > 0 ? leaderboard[0] : (string.Empty, 0, new
+                List<MunicipalityApp.Models.Issue>());
+                var secondPlace = leaderboard.Count > 1 ? leaderboard[1] : (string.Empty, 0, new
+                List<MunicipalityApp.Models.Issue>());
+                var thirdPlace = leaderboard.Count > 2 ? leaderboard[2] : (string.Empty, 0, new
+                List<MunicipalityApp.Models.Issue>());
+            }
+            @* Second Place Card *@
+            @if (!string.IsNullOrEmpty(secondPlace.Item1))
+            {
+                <div class="podium-card second-place">
+                    <i class="fas fa-medal medal" style="color: var(--silver-start);"></i>
+                    <h4>@secondPlace.Item1 <span class="custom-badge silver-medal">#2</span></h4>
+                    <p class="mb-2"><strong>Total Issues:</strong> @secondPlace.Item2</p>
+                    <ul class="issue-list">
+                        @foreach (var issue in secondPlace.Item3.OrderByDescending(x => x.Timestamp).Take(3))
+                        {
+                            <li>
+                                <strong>@issue.Category</strong> - @issue.Timestamp.ToString("g")
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+            @* First Place Card *@
+            @if (!string.IsNullOrEmpty(firstPlace.Item1))
+            {
+                <div class="podium-card first-place">
+                    <i class="fas fa-medal medal" style="color: var(--gold-start);"></i>
+                    <h4>@firstPlace.Item1 <span class="custom-badge gold-medal">#1</span></h4>
+                    <p class="mb-2"><strong>Total Issues:</strong> @firstPlace.Item2</p>
+                    <ul class="issue-list">
+                        @foreach (var issue in firstPlace.Item3.OrderByDescending(x => x.Timestamp).Take(3))
+                        {
+                            <li>
+                                <strong>@issue.Category</strong> - @issue.Timestamp.ToString("g")
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+            @* Third Place Card *@
+            @if (!string.IsNullOrEmpty(thirdPlace.Item1))
+            {
+                <div class="podium-card third-place">
+                    <i class="fas fa-medal medal" style="color: var(--bronze-start);"></i>
+                    <h4>@thirdPlace.Item1 <span class="custom-badge bronze-medal">#3</span></h4>
+                    <p class="mb-2"><strong>Total Issues:</strong> @thirdPlace.Item2</p>
+                    <ul class="issue-list">
+                        @foreach (var issue in thirdPlace.Item3.OrderByDescending(x => x.Timestamp).Take(3))
+                        {
+                            <li>
+                                <strong>@issue.Category</strong> - @issue.Timestamp.ToString("g")
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+        </div>
+        @* Table for positions 4 and below *@
+        if (leaderboard.Count > 3)
+        {
+            <div class="fancy-table-container">
+                <table class="fancy-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Username</th>
+                            <th>Total Issues</th>
+                            <th>Latest Issues</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 3; i < leaderboard.Count; i++)
+                        {
+                            var user = leaderboard[i];
+                            <tr>
+                                <td>#@(i + 1)</td>
+                                <td>@user.Item1</td>
+                                <td>@user.Item2</td>
+                                <td>
+                                    <ul class="list-unstyled mb-0">
+                                        @foreach (var issue in user.Item3.OrderByDescending(x => x.Timestamp).Take(2))
+                                        {
+                                            <li>
+                                                <strong>@issue.Category</strong> - @issue.Timestamp.ToString("g")
+                                            </li>
+                                        }
+                                    </ul>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    }
+    else
+    {
+        <p class="text-center">No users on the leaderboard yet. Be the first!</p>
+    }
+</div>
+
+@section Scripts {
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script>
+        const messages = [
+            "Thank you for making our community a better place!",
+            "Your voice matters — every report brings us closer to improvement.",
+            "Great job! You’re helping create a cleaner, safer municipality.",
+            "Together, small actions create big changes.",
+            "We appreciate your effort — keep it up!",
+            "You’re making a real difference in your community.",
+            "Reporting issues today builds a stronger tomorrow.",
+            "Every report is a step toward progress. Thank you!",
+            "Your contribution helps improve services for everyone.",
+            "Well done! Communities thrive when citizens take action."
+        ];
+        let messageIndex = 0;
+        let charIndex = 0;
+        let currentMessage = '';
+        let typingTimeout;
+        const typingSpeed = 50; // milliseconds
+        const pauseTime = 3000; // milliseconds to wait before typing next message
+
+        function typeWriter() {
+            if (charIndex < currentMessage.length) {
+                document.getElementById("encouragingMessageContainer").textContent += currentMessage.charAt(charIndex);
+                charIndex++;
+                typingTimeout = setTimeout(typeWriter, typingSpeed);
+            } else {
+                setTimeout(startNextMessage, pauseTime);
+            }
+        }
+
+        function startNextMessage() {
+            messageIndex = (messageIndex + 1) % messages.length;
+            currentMessage = messages[messageIndex];
+            charIndex = 0;
+            document.getElementById("encouragingMessageContainer").textContent = '';
+            typeWriter();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            startNextMessage();
+        });
+
+        $(document).ready(function () {
+            $('#reportForm').submit(function (e) {
+                e.preventDefault(); // Prevent the default form submission
+
+                // --- START LOCATION COMBINATION FIX ---
+                // 1. Get all values from the structured inputs
+                const addressLine1 = $('#AddressLine1').val().trim();
+                const addressLine2 = $('#AddressLine2').val().trim();
+                const suburb = $('#Suburb').val().trim();
+                const city = $('#City').val().trim();
+                const postalCode = $('#PostalCode').val().trim();
+                const latLong = $('#LatLong').val().trim();
+
+                // 2. Perform basic validation for required fields
+                if (!addressLine1 || !suburb || !city) {
+                    toastr.error('Please fill in the mandatory location fields: Address Line 1, Suburb, and City.');
+                    return; // Stop the form submission
+                }
+
+                // 3. Create an array of non-empty parts in the desired order
+                let locationParts = [
+                    addressLine1,
+                    addressLine2,
+                    suburb,
+                    city,
+                    postalCode,
+                    latLong
+                ].filter(part => part !== ''); // Filter out any empty strings
+
+                // 4. Combine them into a single string
+                const combinedAddress = locationParts.join(', ');
+
+                // 5. Set the value of the hidden 'Location' input
+                $('#CombinedLocation').val(combinedAddress);
+                // --- END LOCATION COMBINATION FIX ---
+
+                // The rest of your existing AJAX logic:
+                const formData = new FormData(this);
+
+                $.ajax({
+                    url: '@Url.Action("Report", "Issue")',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        if (response.success) {
+                            toastr.success(response.message);
+                            $('#reportForm')[0].reset(); // Clear form on success
+
+                            // Important: Clear the hidden field and individual fields after reset
+                            $('#CombinedLocation').val('');
+                            $('.location-part').val('');
+
+                            // Restart the typing animation
+                            clearTimeout(typingTimeout);
+                            startNextMessage();
+                        } else {
+                            toastr.error(response.message);
+                        }
+                    },
+                    error: function () {
+                        toastr.error('An error occurred. Please try again.');
+                    }
+                });
+            });
+        });
+    </script>
+}

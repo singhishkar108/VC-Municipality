@@ -1,0 +1,354 @@
+@model MunicipalityApp.Models.BlogPost
+@{
+    ViewData["Title"] = "View Post";
+
+    var username = Context.Session.GetString("Username");
+    var role = Context.Session.GetString("Role");
+    var isUser = role == "User";
+    var isAdmin = role == "Admin";
+    var hasLiked = !string.IsNullOrEmpty(username) && Model.LikedBy.Contains(username, StringComparer.OrdinalIgnoreCase);
+    var currentUrl = Context.Request.Path + Context.Request.QueryString;
+}
+
+<style>
+    :root {
+        --primary-blue: #004d9e;
+        --light-blue: #007ac3;
+        --dark-gray: #333;
+        --light-gray: #f2f2f2;
+        --text-color: #555;
+        --border-color: #ddd;
+        --podium-blue: #0A2342;
+    }
+
+    .blog-container {
+        padding: 2rem 0;
+    }
+
+    .form-header {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary-blue);
+        margin-bottom: 0.5rem;
+    }
+
+    .form-subtitle {
+        font-size: 1.1rem;
+        color: var(--dark-gray);
+        margin-bottom: 2rem;
+    }
+
+    .form-control,
+    .form-select {
+        background-color: var(--light-gray);
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        background-color: white;
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 0.25rem rgba(0, 77, 158, 0.25);
+    }
+
+    .btn-primary {
+        background-color: var(--primary-blue);
+        border-color: var(--primary-blue);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn-primary:hover {
+        background-color: var(--light-blue);
+        border-color: var(--light-blue);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-outline-secondary {
+        border-color: var(--primary-blue);
+        color: var(--primary-blue);
+    }
+
+    .btn-outline-secondary:hover {
+        background-color: var(--primary-blue);
+        color: white;
+    }
+
+    .action-button-size {
+        padding: 0.375rem 1rem;
+    }
+
+    .blog-card {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        max-width: 800px;
+        margin: 0 auto 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    }
+
+    .post-header {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+    }
+
+    .profile-pic {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        margin-right: 10px;
+    }
+
+    .username-location-container {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .username {
+        font-weight: bold;
+        color: #262626;
+        font-size: 14px;
+    }
+
+    .location-timestamp {
+        font-size: 12px;
+        color: #8e8e8e;
+    }
+
+    .post-image {
+        width: 100%;
+        max-height: 600px;
+        object-fit: contain;
+    }
+
+    .post-actions {
+        display: flex;
+        padding: 10px 10px 0;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .action-icon {
+        width: 28px;
+        height: 28px;
+        cursor: pointer;
+        transition: transform 0.1s ease-in-out;
+    }
+
+    .action-icon:hover {
+        transform: scale(1.1);
+    }
+
+    .likes-count {
+        font-weight: bold;
+        font-size: 14px;
+        color: #262626;
+    }
+
+    .post-description {
+        padding: 0 10px;
+        font-size: 14px;
+        color: #262626;
+    }
+
+    .post-description p {
+        margin: 0;
+    }
+
+    .post-hashtags {
+        padding: 0 10px 10px;
+        font-weight: bold;
+        color: var(--light-blue);
+        font-size: 14px;
+    }
+
+    .post-hashtags span {
+        margin-right: 5px;
+    }
+
+    /* Modal styling improvements */
+    .modal-dialog.modal-share {
+        max-width: 400px;
+        margin-top: 15vh;
+    }
+
+    .modal-content {
+        border-radius: 12px;
+        border: none;
+    }
+
+    .modal-header {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .modal-body {
+        padding: 1rem 1.5rem;
+    }
+
+    .modal-footer {
+        border-top: none;
+        padding-top: 0;
+        justify-content: flex-end;
+    }
+
+    .btn-copy {
+        background-color: #007bff;
+        color: white;
+        border: none;
+    }
+
+    .btn-copy:hover {
+        background-color: #0056b3;
+    }
+</style>
+
+<div class="row justify-content-center blog-container">
+    <div class="col-lg-8 mx-auto">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="form-header">View Post</h1>
+                <p class="form-subtitle">Details for a single blog post.</p>
+            </div>
+            <a class="btn btn-primary" asp-action="Feed">Back to Feed</a>
+        </div>
+
+        <div class="blog-card">
+            <div class="post-header">
+                <img class="profile-pic" src="~/images/VCLogoFeed.png" alt="Profile" />
+                <div class="username-location-container">
+                    <span class="username">VC Municipality</span>
+                    <span class="location-timestamp">
+                        @(string.IsNullOrWhiteSpace(Model.Location) ? "—" : Model.Location) &middot;
+                        @Model.Timestamp.ToString("d MMMM")
+                    </span>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.MediaPath))
+            {
+                <img src="@Model.MediaPath" class="post-image" alt="Post media" />
+            }
+            else
+            {
+                <div class="alert alert-secondary text-center rounded-0" style="padding: 100px 0;">
+                    No image available
+                </div>
+            }
+
+            <div class="post-actions">
+                @* Show like/unlike only for Users or Not Logged In *@
+                @if (!isAdmin)
+                {
+                    if (!string.IsNullOrEmpty(username))
+                    {
+                        if (hasLiked)
+                        {
+                            <form asp-action="Unlike" asp-route-id="@Model.Id" method="post" class="d-inline">
+                                <input type="hidden" name="returnUrl" value="@currentUrl" />
+                                <button type="submit" class="btn btn-link p-0" style="font-size:28px; text-decoration:none;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#dc3545" class="action-icon">
+                                        <path
+                                            d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5A5.4 5.4 0 0 1 7.5 3c2.45 0 3.78 1.15 4.5 2.15C12.72 4.15 14.05 3 16.5 3A5.4 5.4 0 0 1 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                                    </svg>
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <form asp-action="Like" asp-route-id="@Model.Id" method="post" class="d-inline">
+                                <input type="hidden" name="returnUrl" value="@currentUrl" />
+                                <button type="submit" class="btn btn-link p-0" style="font-size:28px; text-decoration:none;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="action-icon">
+                                        <path
+                                            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                                    </svg>
+                                </button>
+                            </form>
+                        }
+                    }
+                    else
+                    {
+                        <form asp-action="Login" asp-controller="Auth" method="get" class="d-inline">
+                            <button type="submit" class="btn btn-link p-0" style="font-size:28px; text-decoration:none;">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="action-icon">
+                                    <path
+                                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                                </svg>
+                            </button>
+                        </form>
+                    }
+                }
+
+                <button class="btn btn-sm btn-outline-secondary ms-auto"
+                    onclick="sharePost('@Model.ShareUrl')">Share</button>
+            </div>
+
+            <div class="px-3 py-2">
+                <span class="likes-count">@Model.Likes likes</span>
+            </div>
+
+            <div class="post-description px-3">
+                <p>@Model.Description</p>
+            </div>
+
+            @if (Model.Hashtags?.Any() == true)
+            {
+                <div class="post-hashtags">
+                    @foreach (var h in Model.Hashtags)
+                    {
+                        <span>#@h</span>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function sharePost(url) {
+            const modalHtml = `
+                        <div class="modal fade" id="shareModal" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-share">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Share this post</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <input type="text" class="form-control" id="shareLink" value="${url}" readonly />
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button class="btn btn-copy" onclick="copyLink()">Copy link</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+
+            const existingModal = document.getElementById('shareModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            const modal = new bootstrap.Modal(document.getElementById('shareModal'));
+            modal.show();
+
+            document.getElementById('shareModal').addEventListener('hidden.bs.modal', function () {
+                this.remove();
+            });
+        }
+
+        function copyLink() {
+            const linkInput = document.getElementById('shareLink');
+            linkInput.select();
+            document.execCommand('copy');
+            alert('Link copied successfully');
+        }
+    </script>
+}

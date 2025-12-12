@@ -1,0 +1,633 @@
+@model IEnumerable<MunicipalityApp.Models.ServiceRequest>
+@using System.Text.RegularExpressions
+@{
+    ViewData["Title"] = "My Service Requests";
+    // Fetch ViewBag items set in the controller
+    var serviceTypes = ViewBag.ServiceTypes as string[] ?? Array.Empty<string>();
+    var departments = ViewBag.Departments as string[] ?? Array.Empty<string>();
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+@* --- Consolidated Styling Block --- *@
+<style>
+    :root {
+        --primary-blue: #004d9e;
+        --light-blue: #007ac3;
+        --dark-gray: #333;
+        /* Used for icon color */
+        --light-gray: #f2f2f2;
+        --border-color: #ddd;
+        --podium-blue: #0A2342;
+        --red-status: #e74c3c;
+        --yellow-status: #f39c12;
+        --green-status: #2ecc71;
+        /* Define colors for the new buttons */
+        --view-details-blue: #3498db;
+        --download-green: #2ecc71;
+    }
+
+    .service-request-container {
+        padding: 2rem 0;
+    }
+
+    /* Centralized Heading Style - Adjusted */
+    .form-header {
+        font-size: 2.25rem;
+        font-weight: 800;
+        color: var(--podium-blue);
+        margin-bottom: 0.25rem;
+    }
+
+    .form-subtitle {
+        font-size: 1rem;
+        color: #6c757d;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Input/Select Styling */
+    .form-control,
+    .form-select {
+        background-color: #f7f7f7;
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        background-color: white;
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 0.25rem rgba(0, 77, 158, 0.25);
+    }
+
+    /* Primary Button Styling (New Request) - Adjusted */
+    .btn-primary {
+        background-color: var(--primary-blue);
+        border-color: var(--primary-blue);
+        font-size: 1rem;
+        padding: 0.6rem 1.2rem;
+        border-radius: 8px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn-primary:hover {
+        background-color: var(--light-blue);
+        border-color: var(--light-blue);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Filter Panel Styling */
+    .filter-panel {
+        background-color: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+        padding: 1.5rem;
+    }
+
+    .filter-panel-header {
+        cursor: pointer;
+        font-size: 1.15rem;
+        color: var(--podium-blue);
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--light-gray);
+        margin-bottom: 1rem;
+    }
+
+    /* Button specific style for the bottom bar */
+    .btn-apply-reset {
+        font-size: 0.95rem;
+        padding: 0.65rem;
+        border-radius: 8px;
+    }
+
+    .btn-apply-reset-primary {
+        background-color: var(--primary-blue);
+        border-color: var(--primary-blue);
+        color: white;
+    }
+
+    .btn-apply-reset-secondary {
+        border: 1px solid #6c757d;
+        color: #6c757d;
+    }
+
+
+    /* Fancy Table Styles - ADJUSTED FOR CLEANLINESS AND TEXT SIZE */
+    .fancy-table-container {
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        overflow-x: auto;
+    }
+
+    .fancy-table {
+        min-width: 1200px;
+        width: 100%;
+        border-collapse: collapse;
+        color: var(--dark-gray);
+        font-size: 0.9rem;
+    }
+
+    .fancy-table thead {
+        background-color: var(--podium-blue);
+        color: white;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .fancy-table th,
+    .fancy-table td {
+        padding: 0.75rem 1rem;
+        text-align: left;
+        vertical-align: middle;
+    }
+
+    .fancy-table tbody tr:nth-child(odd) {
+        background-color: white;
+    }
+
+    .fancy-table tbody tr:nth-child(even) {
+        background-color: var(--light-gray);
+    }
+
+    .fancy-table tbody tr:hover {
+        background-color: #e0e0e0;
+    }
+
+    /* Specific styles for Status & Priority badges (Unchanged) */
+    .status-badge {
+        display: inline-block;
+        padding: 0.3em 0.6em;
+        font-size: 0.8em;
+        font-weight: 700;
+        line-height: 1;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+        border-radius: 0.4rem;
+        color: white;
+        text-transform: uppercase;
+    }
+
+    .status-Requested,
+    .status-Acknowledged {
+        background-color: var(--light-blue);
+    }
+
+    .status-Assigned,
+    .status-InProgress {
+        background-color: var(--yellow-status);
+    }
+
+    .status-Completed {
+        background-color: var(--green-status);
+    }
+
+    .status-OnHold,
+    .status-Cancelled {
+        background-color: var(--red-status);
+    }
+
+    .priority-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        color: white;
+        font-weight: 700;
+        font-size: 0.9em;
+    }
+
+    .priority-1,
+    .priority-2 {
+        background-color: var(--green-status);
+    }
+
+    .priority-3,
+    .priority-4 {
+        background-color: var(--yellow-status);
+    }
+
+    .priority-5 {
+        background-color: var(--red-status);
+    }
+
+    /* ========================================================= *
+     * NEW ACTION BUTTON STYLES (REQUIRED CHANGE)              *
+     * ========================================================= */
+
+    .action-buttons-cell {
+        white-space: nowrap;
+        min-width: 120px;
+    }
+
+    .btn-table-action {
+        padding: 0.5rem 0.6rem;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        color: var(--dark-gray);
+        /* <--- CHANGED: Sets icon color to dark gray/black */
+        transition: all 0.2s ease;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-table-action:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-view-details {
+        background-color: var(--view-details-blue);
+    }
+
+    .btn-download-attachments {
+        background-color: var(--download-green);
+    }
+
+    /* Media query to force scroll when screen is smaller than min-width */
+    @@media (max-width: 1200px) {
+        .fancy-table-container {
+            overflow-x: scroll;
+        }
+    }
+</style>
+
+
+<div class="row justify-content-center service-request-container">
+    <div class="col-lg-10 mx-auto">
+
+        @* --- Centralized Heading & New Request Button --- *@
+        <div class="text-center mb-5">
+            <h1 class="form-header"><i class="bi bi-list-check me-2"></i> @ViewData["Title"]</h1>
+            <p class="form-subtitle">Track the status and progress of all service requests you have logged with the
+                Municipality.</p>
+            <a asp-action="Create" class="btn btn-primary mt-3">
+                <i class="bi bi-plus-circle me-1"></i> Log a New Service Request
+            </a>
+        </div>
+
+        @* --- Consolidated Search and Filter Panel --- *@
+        <div class="filter-panel mb-5">
+            <div class="filter-panel-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse"
+                data-bs-target="#filterBody" aria-expanded="true" aria-controls="filterBody">
+                <span class="fw-bold"><i class="bi bi-funnel-fill me-2"></i> Filter & Search Options</span>
+                <i class="bi bi-chevron-up"></i>
+            </div>
+
+            <div class="collapse show filter-panel-body" id="filterBody">
+
+                @* Search Bar Row *@
+                <div class="row mb-4 align-items-center g-2">
+                    <div class="col-12">
+                        <label class="form-label small text-muted">Keyword Search</label>
+                        <input type="text" id="searchTerm" class="form-control"
+                            placeholder="Search by Title, Location, Service Type, or Status..." />
+                    </div>
+                </div>
+
+                @* Dropdown Filters Row *@
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted">Status</label>
+                        <select id="statusFilter" class="form-select form-select-sm">
+                            <option value="All">All Statuses</option>
+                            <option value="Requested">Requested</option>
+                            <option value="Acknowledged">Acknowledged</option>
+                            <option value="Assigned">Assigned</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="On Hold">On Hold</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted">Priority</label>
+                        <select id="priorityFilter" class="form-select form-select-sm">
+                            <option value="All">All Priorities</option>
+                            <option value="5">5 (Highest)</option>
+                            <option value="4">4</option>
+                            <option value="3">3</option>
+                            <option value="2">2</option>
+                            <option value="1">1 (Lowest)</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted">Service Type</label>
+                        <select id="serviceTypeFilter" class="form-select form-select-sm">
+                            <option value="All">All Service Types</option>
+                            @foreach (var type in serviceTypes)
+                            {
+                                <option value="@type">@type</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted">Assigned Department</label>
+                        <select id="departmentFilter" class="form-select form-select-sm">
+                            <option value="All">All Departments</option>
+                            @foreach (var dept in departments)
+                            {
+                                <option value="@dept">@dept</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                @* Date Range Filters and Sort Row *@
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label small text-muted">Date Requested Range</label>
+                        <div class="input-group">
+                            <input type="date" id="dateRequestedStart" class="form-control form-control-sm"
+                                title="Start Date" />
+                            <span class="input-group-text">-</span>
+                            <input type="date" id="dateRequestedEnd" class="form-control form-control-sm"
+                                title="End Date" />
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label small text-muted">Date Completed Range</label>
+                        <div class="input-group">
+                            <input type="date" id="completedDateStart" class="form-control form-control-sm"
+                                title="Start Date" />
+                            <span class="input-group-text">-</span>
+                            <input type="date" id="completedDateEnd" class="form-control form-control-sm"
+                                title="End Date" />
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label small text-muted">Sort by Date Requested</label>
+                        <select id="dateRequestedSort" class="form-select form-select-sm">
+                            <option value="">No Sort</option>
+                            <option value="desc">Newest First</option>
+                            <option value="asc">Oldest First</option>
+                        </select>
+                    </div>
+                </div>
+
+                @* --- Apply/Reset Buttons Moved to Bottom (Equal Size) --- *@
+                <div class="row pt-3 border-top">
+                    <div class="col-md-6 mb-2 mb-md-0">
+                        <button id="searchButton" class="btn btn-apply-reset btn-apply-reset-primary w-100">
+                            <i class="bi bi-filter me-1"></i> Apply Filters & Search
+                        </button>
+                    </div>
+                    <div class="col-md-6">
+                        <button id="clearFilters" class="btn btn-apply-reset btn-apply-reset-secondary w-100">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* --- End Consolidated Filter Panel --- *@
+
+
+        @* --- Table Display --- *@
+        @if (Model == null || !Model.Any())
+        {
+            <div class="alert alert-info text-center" id="noResults" style="display: @(Model.Any() ? "none" : "block");">
+                No service requests found matching the current criteria.
+            </div>
+        }
+
+        <div class="fancy-table-container" style="display: @(Model.Any() ? "block" : "none");">
+            <table class="fancy-table align-middle" id="requestsTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Issue Title</th>
+                        <th>Location / Suburb</th>
+                        <th>Type</th>
+                        <th>Department</th>
+                        <th>Status</th>
+                        <th>Priority</th>
+                        <th>Date Requested</th>
+                        <th class="text-nowrap">Date Completed</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="requestsBody">
+                    @foreach (var req in Model)
+                    {
+                        // Helper function to create a simplified location string
+                        string location = $"{req.StreetAddressLine2}, {req.Suburb}";
+                        // Fallback if StreetAddressLine2 is empty
+                        if (string.IsNullOrWhiteSpace(req.StreetAddressLine2))
+                        {
+                            location = $"{req.Suburb}, {req.City}";
+                        }
+
+                        // Clean status string for CSS class
+                        string statusClass = Regex.Replace(req.Status ?? "", @"[^a-zA-Z0-9]", "");
+
+                        <tr>
+                            <td>@req.RequestID</td>
+                            <td>
+                                <div style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+                                    title="@req.Title">
+                                    <strong>@req.Title</strong>
+                                </div>
+                                <div class="text-muted"
+                                    style="font-size: 0.9em; max-height: 50px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+                                    @req.Description
+                                </div>
+                            </td>
+                            <td>
+                                @location
+                                <div class="text-muted" style="font-size: 0.85em;">@req.City</div>
+                            </td>
+                            <td>@req.ServiceType</td>
+                            <td>@(string.IsNullOrEmpty(req.AssignedDepartment) ? "Unassigned" : req.AssignedDepartment)</td>
+                            <td>
+                                <span class="status-badge status-@statusClass">@req.Status</span>
+                            </td>
+                            <td>
+                                <span class="priority-badge priority-@req.PriorityLevel"
+                                    title="Priority Level @req.PriorityLevel">@req.PriorityLevel</span>
+                            </td>
+                            <td class="text-nowrap">@req.DateRequested.ToString("yyyy-MM-dd")</td>
+                            <td class="text-nowrap">@(req.CompletedDate.HasValue ?
+                                                        req.CompletedDate.Value.ToString("yyyy-MM-dd") : "N/A")</td>
+
+                            <td class="action-buttons-cell">
+                                <a asp-action="Details" asp-route-id="@req.RequestID"
+                                    class="btn btn-table-action btn-view-details me-2" title="View Details">
+                                    <i class="bi bi-eye-fill"></i>
+                                </a>
+                                @if (req.Attachments != null && req.Attachments.Count > 0)
+                                {
+                                    <a class="btn btn-table-action btn-download-attachments"
+                                        href="@Url.Action("DownloadAttachments", "ServiceRequest", new { requestId = req.RequestID })"
+                                        title="Download Attachments (@req.Attachments.Count)">
+                                        <i class="bi bi-cloud-download-fill"></i>
+                                    </a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Helper to load filtered data via AJAX
+        const loadFilteredData = () => {
+            const data = {
+                searchTerm: $('#searchTerm').val(),
+                status: $('#statusFilter').val(),
+                priority: $('#priorityFilter').val(),
+                assignedDepartment: $('#departmentFilter').val(),
+                serviceType: $('#serviceTypeFilter').val(),
+                dateRequestedSort: $('#dateRequestedSort').val(),
+                dateRequestedStart: $('#dateRequestedStart').val(),
+                dateRequestedEnd: $('#dateRequestedEnd').val(),
+                completedDateSort: $('#completedDateSort').val(),
+                completedDateStart: $('#completedDateStart').val(),
+                completedDateEnd: $('#completedDateEnd').val()
+            };
+
+            $.ajax({
+                url: '/ServiceRequest/FilterUserRequests',
+                type: 'GET',
+                data: data,
+                success: function (data) {
+                    const tbody = $('#requestsBody');
+                    tbody.empty();
+
+                    const $tableContainer = $('#requestsTable').parent();
+
+                    if (data.length === 0) {
+                        $('#noResults').show();
+                        $tableContainer.hide();
+                        return;
+                    }
+
+                    $('#noResults').hide();
+                    $tableContainer.show();
+
+                    data.forEach(req => {
+                        // Clean status string for CSS class
+                        const statusClass = (req.status || '').replace(/[^a-zA-Z0-9]/g, '');
+                        const statusBadge = '<span class="status-badge status-' + statusClass + '">' + req.status + '</span>';
+
+                        // Priority formatting
+                        const priorityBadge = '<span class="priority-badge priority-' + req.priorityLevel + '" title="Priority Level ' + req.priorityLevel + '">' + req.priorityLevel + '</span>';
+
+                        // Date Completed formatting 
+                        const dateCompletedDisplay = req.completedDate ? req.completedDate.substring(0, 10) : 'N/A';
+
+                        // Simplified Location for client-side display:
+                        let displayLocation = (req.streetAddressLine2 ? req.streetAddressLine2 + ', ' : '') + (req.suburb || '');
+                        if (!displayLocation.replace(/,\s*/g, '').trim()) {
+                            displayLocation = req.city || 'N/A';
+                        }
+
+                        // ========================================================= 
+                        // UPDATED BUTTONS (JAVASCRIPT) 
+                        // ========================================================= 
+                        const attachmentsButton = (req.attachments && req.attachments.length > 0)
+                            ? '<a class="btn btn-table-action btn-download-attachments" href="/ServiceRequest/DownloadAttachments?requestId=' + req.requestID + '" title="Download Attachments (' + req.attachments.length + ')">'
+                            + '<i class="bi bi-cloud-download-fill"></i>'
+                            + '</a>'
+                            : '';
+
+                        const actionButtons =
+                            '<td class="action-buttons-cell">'
+                            + '<a href="/ServiceRequest/Details/' + req.requestID + '" class="btn btn-table-action btn-view-details me-2" title="View Details">'
+                            + '<i class="bi bi-eye-fill"></i>'
+                            + '</a>'
+                            + attachmentsButton
+                            + '</td>';
+                        // ========================================================= 
+
+                        const row = '<tr>'
+                            + '<td>' + req.requestID + '</td>'
+                            + '<td>'
+                            + '<div style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="' + req.title + '">'
+                            + '<strong>' + req.title + '</strong>'
+                            + '</div>'
+                            + '<div class="text-muted" style="font-size: 0.9em; max-height: 50px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">'
+                            + req.description
+                            + '</div>'
+                            + '</td>'
+                            + '<td>'
+                            + displayLocation
+                            + '<div class="text-muted" style="font-size: 0.85em;">' + (req.city || '') + '</div>'
+                            + '</td>'
+                            + '<td>' + req.serviceType + '</td>'
+                            + '<td>' + (req.assignedDepartment || 'Unassigned') + '</td>'
+                            + '<td>' + statusBadge + '</td>'
+                            + '<td>' + priorityBadge + '</td>'
+                            + '<td class="text-nowrap">' + req.dateRequested.substring(0, 10) + '</td>'
+                            + '<td class="text-nowrap">' + dateCompletedDisplay + '</td>'
+                            + actionButtons
+                            + '</tr>';
+
+                        tbody.append(row);
+                    });
+                },
+                error: function () {
+                    console.error('Error fetching filtered data.');
+                }
+            });
+        };
+
+        // Event handlers
+        $('#searchButton').on('click', loadFilteredData);
+        $('select, input[type="date"]').on('change', loadFilteredData);
+
+        // Handle chevron rotation on filter panel collapse/expand
+        $('#filterBody').on('shown.bs.collapse', function () {
+            $('.filter-panel-header i').removeClass('bi-chevron-down').addClass('bi-chevron-up');
+        }).on('hidden.bs.collapse', function () {
+            $('.filter-panel-header i').removeClass('bi-chevron-up').addClass('bi-chevron-down');
+        });
+
+        // Reset filters
+        $('#clearFilters').on('click', function () {
+            $('#searchTerm').val('');
+            $('#statusFilter').val('All');
+            $('#priorityFilter').val('All');
+            $('#departmentFilter').val('All');
+            $('#serviceTypeFilter').val('All');
+            $('#dateRequestedSort').val('');
+            $('#dateRequestedStart').val('');
+            $('#dateRequestedEnd').val('');
+            $('#completedDateSort').val('');
+            $('#completedDateStart').val('');
+            $('#completedDateEnd').val('');
+
+            loadFilteredData(); // Execute the load after reset
+        });
+
+        // Initial load check for No Results panel (since the table is now wrapped)
+        $(document).ready(function () {
+            const hasInitialResults = $('#requestsBody').children().length > 0;
+            const $tableContainer = $('#requestsTable').parent();
+            if (!hasInitialResults) {
+                $tableContainer.hide();
+                $('#noResults').show();
+            } else {
+                $('#noResults').hide();
+                $tableContainer.show();
+            }
+        });
+
+    </script>
+}

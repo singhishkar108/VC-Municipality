@@ -1,0 +1,14 @@
+[
+  {
+    "Username": "Admin123",
+    "PasswordHash": "FHwN8FdmYvYbOMPRI48hOQ\u002BDrgSNLof5GrHt9lvyAVs=",
+    "Salt": "KF1Zzeiy8JrM24YPMOhTkg==",
+    "Role": "Admin"
+  },
+  {
+    "Username": "ishkar",
+    "PasswordHash": "GixRUPCJFuH/S5nP/CtrQViQJq47y9G9qrCEeYx8hDU=",
+    "Salt": "j9pTTznqSaW9vwOmFE/5SQ==",
+    "Role": "User"
+  }
+]

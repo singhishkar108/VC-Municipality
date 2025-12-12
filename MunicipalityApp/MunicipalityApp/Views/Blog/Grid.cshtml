@@ -1,0 +1,169 @@
+@model List<MunicipalityApp.Models.BlogPost>
+@{
+    ViewData["Title"] = "All Posts";
+    var fromDate = ViewBag.FromDate as string;
+    var toDate = ViewBag.ToDate as string;
+}
+
+<style>
+    /* Styling for the page header and form */
+    .form-header {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #004d9e;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-subtitle {
+        font-size: 1.1rem;
+        color: #333;
+        margin-bottom: 2rem;
+    }
+
+    .form-control,
+    .form-select {
+        background-color: #f2f2f2;
+        border: 1px solid #ddd;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        background-color: white;
+        border-color: #004d9e;
+        box-shadow: 0 0 0 0.25rem rgba(0, 77, 158, 0.25);
+    }
+
+    .btn-outline-secondary {
+        border-color: #004d9e;
+        color: #004d9e;
+    }
+
+    .btn-outline-secondary:hover {
+        background-color: #004d9e;
+        color: white;
+    }
+
+    .btn-outline-dark {
+        border-color: #333;
+        color: #333;
+    }
+
+    .btn-outline-dark:hover {
+        background-color: #333;
+        color: white;
+    }
+
+    /* Instagram-like grid styling */
+    .grid-container {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2px;
+    }
+
+    .grid-item {
+        position: relative;
+        width: 100%;
+        padding-bottom: 100%;
+        /* Creates a 1:1 aspect ratio container */
+        overflow: hidden;
+        cursor: pointer;
+    }
+
+    .grid-item img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        /* Displays the full image */
+        background-color: black;
+        border: 1px solid black;
+    }
+
+    .hover-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        /* Semi-transparent black overlay */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+
+    .grid-item:hover .hover-overlay {
+        opacity: 1;
+    }
+
+    .likes-count {
+        color: white;
+        font-size: 1.2rem;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .heart-icon {
+        width: 24px;
+        height: 24px;
+        fill: white;
+    }
+</style>
+
+<div class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="form-header">All Posts</h1>
+            <p class="form-subtitle">Explore a grid of all community posts.</p>
+        </div>
+        <a class="btn btn-primary" asp-action="Feed">Return to Feed</a>
+    </div>
+
+    <form method="get" class="d-flex gap-2 mb-4">
+        <input type="date" name="fromDate" value="@fromDate" class="form-control" style="max-width:160px;" />
+        <input type="date" name="toDate" value="@toDate" class="form-control" style="max-width:160px;" />
+        <button type="submit" class="btn btn-outline-secondary">Filter</button>
+        <a class="btn btn-outline-dark" asp-action="Grid">Clear</a>
+    </form>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info text-center">
+            No posts found for the selected date range.
+        </div>
+    }
+    else
+    {
+        <div class="grid-container">
+            @foreach (var p in Model)
+            {
+                <a asp-action="ViewPost" asp-route-id="@p.Id" class="grid-item">
+                    @if (!string.IsNullOrEmpty(p.MediaPath))
+                    {
+                        <img src="@p.MediaPath" alt="Post Image" />
+                    }
+                    else
+                    {
+                        <img src="https://via.placeholder.com/600x600.png?text=No+Image" alt="Placeholder" />
+                    }
+                    <div class="hover-overlay">
+                        <div class="likes-count">
+                            <svg class="heart-icon" viewBox="0 0 24 24">
+                                <path
+                                    d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5A5.4 5.4 0 0 1 7.5 3c2.45 0 3.78 1.15 4.5 2.15C12.72 4.15 14.05 3 16.5 3A5.4 5.4 0 0 1 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                            </svg>
+                            <span>@p.Likes</span>
+                        </div>
+                    </div>
+                </a>
+            }
+        </div>
+    }
+</div>

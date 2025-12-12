@@ -1,0 +1,344 @@
+[
+  {
+    "Id": "0144590a-8c7f-4067-8048-5c0c2da291b9",
+    "Type": "Announcement",
+    "Title": "Severe Weather Alert: Heavy Rain \u0026 Flash Flooding Risk",
+    "Description": "The South African Weather Service predicts heavy rainfall (50-100mm) and strong winds for the uMhlanga and Durban North areas, posing a risk of flash flooding, especially in low-lying informal settlements and coastal roads. Residents are advised to avoid unnecessary travel, secure outdoor furniture, and not cross flooded bridges or roads. The municipal disaster management center is on high alert.",
+    "Category": "Health \u0026 Safety Warning",
+    "StartDate": "2025-10-08T20:40:27.826",
+    "EndDate": "2025-10-14T02:50:00",
+    "Location": "uMhlanga",
+    "MediaPath": "/uploads/events/cf6351cd-7e98-42d7-80bd-42d20dac7f2b.jpg",
+    "Timestamp": "2025-10-15T19:47:35.7167184Z",
+    "Hashtags": [
+      "#RainAlert",
+      "#FloodWarning",
+      "#DurbanWeather",
+      "#SafetyFirst",
+      "#SevereWeather"
+    ],
+    "ShareUrl": "http://localhost:5170/Event/Details/0144590a-8c7f-4067-8048-5c0c2da291b9"
+  },
+  {
+    "Id": "2849784c-b1fa-45dd-bbee-430095873af8",
+    "Type": "Event",
+    "Title": "Grand Diwali Night Market \u0026 Fair",
+    "Description": "Experience the lights, food, and music of our annual Diwali market. Authentic Indian cuisine, fireworks, live performances, and family-friendly activities.",
+    "Category": "Markets \u0026 Festivals",
+    "StartDate": "2025-11-01T17:00:37.602",
+    "EndDate": "2025-11-03T22:00:00",
+    "Location": "Chatsworth",
+    "MediaPath": "/uploads/events/c2abf0c7-ec48-43b9-9802-40f5939f2fb0.jpg",
+    "Timestamp": "2025-10-15T00:04:02.5076869Z",
+    "Hashtags": [
+      "#DiwaliMarket",
+      "#ChatsworthEvents",
+      "#FestivalofLights",
+      "#FamilyFun"
+    ],
+    "ShareUrl": "http://localhost:5170/Event/Details/2849784c-b1fa-45dd-bbee-430095873af8"
+  },
+  {
+    "Id": "4bb52bc1-462f-49d8-9c42-65b60d9f0a02",
+    "Type": "Announcement",
+    "Title": "Pinetown Main Road Night Closure",
+    "Description": "Pinetown Main Road (R103) was successfully closed overnight for essential pothole patching and line marking. The work was completed ahead of schedule, ensuring minimal disruption to morning traffic flow. Thank you to commuters for adhering to the detour routes.",
+    "Category": "Road Closures \u0026 Traffic",
+    "StartDate": "2025-11-01T20:00:08.134",
+    "EndDate": "2025-11-02T05:00:00",
+    "Location": "Pinetown",
+    "MediaPath": "/uploads/events/75353982-ce63-4e91-87f3-e3b58ea900b2.jpg",
+    "Timestamp": "2025-10-15T02:04:52.5948644Z",
+    "Hashtags": [
+      "#PinetownTraffic",
+      "#Roadwork",
+      "#NightClosure"
+    ],
+    "ShareUrl": "http://localhost:5170/Event/Details/4bb52bc1-462f-49d8-9c42-65b60d9f0a02"
+  },
+  {
+    "Id": "fc211015-a053-4220-9c48-4a12a2e983f7",
+    "Type": "Announcement",
+    "Title": "Emergency Water Interruption: Umhlanga Rocks Drive",
+    "Description": "Residents and businesses in the areas surrounding Umhlanga Rocks Drive and Portland Drive will experience a planned emergency water supply interruption due to a major burst pipe repair. Please store water.",
+    "Category": "Service Delivery Alert",
+    "StartDate": "2025-11-05T08:00:17.006",
+    "EndDate": "2025-11-06T09:00:00",
+    "Location": "uMhlanga",
+    "MediaPath": "/uploads/events/d37ef0be-eff6-4c6c-9411-744fea1d8bed.jpg",
+    "Timestamp": "2025-10-14T23:30:25.1915225Z",
+    "Hashtags": [
+      "#WaterOutage",
+      "#UmhlangaRocks",
+      "#ServiceAlert",
+      "#MunicipalRepair"
+    ],
+    "ShareUrl": "http://localhost:5170/Event/Details/fc211015-a053-4220-9c48-4a12a2e983f7"
+  },
+  {
+    "Id": "0f63a4e5-a81b-4bdd-99c2-e4e7c0e812d4",
+    "Type": "Event",
+    "Title": "Basic Computer \u0026 Internet Skills for Seniors",
+    "Description": "A four-week course aimed at providing older residents with essential digital literacy, email, and safe internet browsing skills. Classes held every Tuesday and Thursday.",
+    "Category": "Learning \u0026 Skill Building",
+    "StartDate": "2025-11-05T10:00:03.613",
+    "EndDate": "2025-11-28T12:00:00",
+    "Location": "Ntuzuma",
+    "MediaPath": "/uploads/events/4c5efb77-171c-4584-858c-3f4d41ca0bd7.jpg",
+    "Timestamp": "2025-10-15T00:07:38.4029302Z",
+    "Hashtags": [
+      "#DigitalLiteracy",
+      "#SkillBuilding",
+      "#SeniorsLearning",
+      "#FreeCourse"
+    ],
+    "ShareUrl": "http://localhost:5170/Event/Details/0f63a4e5-a81b-4bdd-99c2-e4e7c0e812d4"
+  },
+  {
+    "Id": "028b74b8-7c21-4711-92f1-cf28932a81d2",
+    "Type": "Announcement",
+    "Title": "Berea Water Pipe Replacement Project Complete",
+    "Description": "The municipality successfully completed the scheduled water pipe replacement project in the Berea area. All services have been restored, and road resurfacing is complete. We thank residents for their patience during this necessary infrastructure upgrade which ensures long-term water stability in the area.",
+    "Category": "Service Delivery Alert",
+    "StartDate": "2025-11-08T08:00:39.544",
+    "EndDate": "2025-11-11T16:30:00",
+    "Location": "Berea",
+    "MediaPath": "/uploads/events/cad9974b-8eee-4084-896b-85ad09143f1e.jpg",
+    "Timestamp": "2025-10-15T01:58:53.1241753Z",
+    "Hashtags": [
+      "#WaterService",
+      "#BereaUpgrade",
+      "#Infrastructure"
+    ],
+    "ShareUrl": "http://localhost:5170/Event/Details/028b74b8-7c21-4711-92f1-cf28932a81d2"
+  },
+  {
+    "Id": "973149d4-0fb4-430a-9d6d-982555ad45c1",
+    "Type": "Announcement",
+    "Title": "Invitation to Tender: Supply \u0026 Maintenance of Municipal IT Infrastructure",
+    "Description": "The Municipality seeks experienced service providers for a three-year contract to supply and maintain all public-facing IT and networking infrastructure. Mandatory briefing session on Nov 10th.",
+    "Category": "Job \u0026 Tenders",
+    "StartDate": "2025-11-08T10:00:10.866",
+    "EndDate": "2025-12-05T16:00:00",
+    "Location": "Berea",
+    "MediaPath": "/uploads/events/ac17278a-1e38-4d58-830d-88ce5ca23140.jpg",
+    "Timestamp": "2025-10-14T23:52:52.1319196Z",
+    "Hashtags": [
+      "#MunicipalTenders",
+      "#ITSolicitation",
+      "#BusinessOpportunity",
+      "#JobDurban"
+    ],
+    "ShareUrl": "http://localhost:5170/Event/Details/973149d4-0fb4-430a-9d6d-982555ad45c1"
+  },
+  {
+    "Id": "14ade9e3-bb51-488a-be6a-00b79c2d5830",
+    "Type": "Event",
+    "Title": "Annual Spring Art \u0026 Sculpture Festival",
+    "Description": "Join us for a weekend celebrating local artists! Featuring live painting, sculpture displays, and a craft market. All proceeds support the local arts community.",
+    "Category": "Arts \u0026 Culture",
+    "StartDate": "2025-11-09T10:00:04.605",
+    "EndDate": "2025-11-10T16:00:00",
+    "Location": "Durban North",
+    "MediaPath": "/uploads/events/12d549b1-f3fc-46b3-af41-2854ba78999c.jpg",
+    "Timestamp": "2025-10-15T00:00:36.5738512Z",
+    "Hashtags": [
+      "#DurbanArts",
+      "#LocalCulture",
+      "#ArtFestival",
+      "#SupportLocal"
+    ],
+    "ShareUrl": "http://localhost:5170/Event/Details/14ade9e3-bb51-488a-be6a-00b79c2d5830"
+  },
+  {
+    "Id": "7cd73403-24f6-4d30-b635-04537c1bcf34",
+    "Type": "Event",
+    "Title": "Youth Skills Workshop: Digital Marketing Basics",
+    "Description": "Our three-day intensive workshop focused on providing local youth with foundational digital marketing skills, including social media management, basic SEO, and content creation. The workshop was a huge success, equipping attendees with tools for future employment and entrepreneurship.",
+    "Category": "Learning \u0026 Skill Building",
+    "StartDate": "2025-11-14T09:00:34.086",
+    "EndDate": "2025-11-14T17:00:00",
+    "Location": "Pinetown",
+    "MediaPath": "/uploads/events/6fd018bf-6b34-4092-8b0f-3508de106b37.jpg",
+    "Timestamp": "2025-10-15T02:02:00.9430312Z",
+    "Hashtags": [
+      "#PinetownYouth",
+      "#DigitalSkills",
+      "#SkillBuilding"
+    ],
+    "ShareUrl": "http://localhost:5170/Event/Details/7cd73403-24f6-4d30-b635-04537c1bcf34"
+  },
+  {
+    "Id": "f06b503f-3088-484a-ab40-06417e5e2d2d",
+    "Type": "Announcement",
+    "Title": "Full Road Closure: Pinetown CBD Resurfacing",
+    "Description": "The main arterial road through Pinetown CBD will be closed between St. John\u0027s Avenue and Josiah Gumede Road for a full resurfacing project. Expect major delays; alternative routes are strongly advised.",
+    "Category": "Road Closures \u0026 Traffic",
+    "StartDate": "2025-11-15T06:00:46.025",
+    "EndDate": "2025-11-18T20:00:00",
+    "Location": "Pinetown",
+    "MediaPath": "/uploads/events/bbb219fa-e76f-4c9b-89c9-8147830d1ac1.jpg",
+    "Timestamp": "2025-10-14T23:47:53.9509073Z",
+    "Hashtags": [
+      "#PinetownTraffic",
+      "#RoadClosure",
+      "#ResurfacingProject",
+      "#CBDAlert"
+    ],
+    "ShareUrl": "http://localhost:5170/Event/Details/f06b503f-3088-484a-ab40-06417e5e2d2d"
+  },
+  {
+    "Id": "02483579-7148-4ff4-8bc4-7cdb59a9f1c4",
+    "Type": "Event",
+    "Title": "Kingsburgh Coastal Clean-Up and Recycling Day",
+    "Description": "Join the municipality and local volunteers to clean the beach and host a community-wide recycling drop-off. Free gloves and bags provided.",
+    "Category": "Environmental \u0026 Green Initiatives",
+    "StartDate": "2025-11-16T08:30:00",
+    "EndDate": "2025-11-16T12:00:00",
+    "Location": "Kingsburgh",
+    "MediaPath": "/uploads/events/55615b61-e82d-4968-b9df-d985c494d112.jpg",
+    "Timestamp": "2025-10-15T00:09:37.1381688Z",
+    "Hashtags": [
+      "#GreenInitiative",
+      "#BeachCleanup",
+      "#RecyclingDay",
+      "#Kingsburgh",
+      "#Beach"
+    ],
+    "ShareUrl": "http://localhost:5170/Event/Details/02483579-7148-4ff4-8bc4-7cdb59a9f1c4"
+  },
+  {
+    "Id": "b13e710a-21a6-44ef-a7aa-ca2eb476ae1c",
+    "Type": "Event",
+    "Title": "Public Hearing: 2026/2027 Draft Municipal Budget",
+    "Description": "The Council invites all residents to a public participation meeting to review and provide input on the proposed municipal budget for the upcoming financial year. Your voice matters!",
+    "Category": "Public Participation \u0026 Meetings",
+    "StartDate": "2025-11-20T17:30:01.829",
+    "EndDate": "2025-11-20T19:30:00",
+    "Location": "Greyville",
+    "MediaPath": "/uploads/events/4a7f789c-ca11-4dc8-8df4-07e3305647df.jpg",
+    "Timestamp": "2025-10-14T23:51:04.5344253Z",
+    "Hashtags": [
+      "#PublicParticipation",
+      "#BudgetReview",
+      "#CouncilMeeting",
+      "#YourCityYourSay"
+    ],
+    "ShareUrl": "http://localhost:5170/Event/Details/b13e710a-21a6-44ef-a7aa-ca2eb476ae1c"
+  },
+  {
+    "Id": "eb14eabb-1b07-49b7-adc0-0467ac2c3ca9",
+    "Type": "Event",
+    "Title": "Bluff Beach 5km Fun Run and Walk",
+    "Description": "Lace up for a non-competitive 5km run/walk along the picturesque Bluff coastline. Free entry, all ages welcome! Registration opens at 6:30 AM.",
+    "Category": "Sports \u0026 Recreation",
+    "StartDate": "2025-11-23T07:00:42.647",
+    "EndDate": "2025-11-23T10:00:00",
+    "Location": "Bluff",
+    "MediaPath": "/uploads/events/bf762fbc-bf5e-4c81-b0ea-f5cde054c06b.jpg",
+    "Timestamp": "2025-10-15T00:02:21.6625397Z",
+    "Hashtags": [
+      "#FunRun",
+      "#BluffCoast",
+      "#Fitness",
+      "#Recreation"
+    ],
+    "ShareUrl": "http://localhost:5170/Event/Details/eb14eabb-1b07-49b7-adc0-0467ac2c3ca9"
+  },
+  {
+    "Id": "2000b8e8-70bf-43f9-b5ad-c09eeee0c6b8",
+    "Type": "Announcement",
+    "Title": "Scheduled Power Outage: Folweni Substation Maintenance",
+    "Description": "Essential maintenance will result in a planned power outage impacting all areas serviced by the Folweni substation. Please switch off sensitive electrical equipment.",
+    "Category": "Service Delivery Alert",
+    "StartDate": "2025-11-25T09:10:26.2",
+    "EndDate": "2025-11-25T14:10:00",
+    "Location": "Folweni",
+    "MediaPath": "/uploads/events/87727a57-1bc4-4413-8d28-cd5274fc44b6.jpg",
+    "Timestamp": "2025-10-15T00:12:12.6536968Z",
+    "Hashtags": [
+      "#PowerOutage",
+      "#LoadSheddingAlert",
+      "#Folweni",
+      "#Maintenance"
+    ],
+    "ShareUrl": "http://localhost:5170/Event/Details/2000b8e8-70bf-43f9-b5ad-c09eeee0c6b8"
+  },
+  {
+    "Id": "07faf3b9-8682-4e84-8807-c983ffeaa229",
+    "Type": "Event",
+    "Title": "Guided Tour: Inchanga Heritage Rail Restoration",
+    "Description": "Join the Historical Preservation Society for a guided walk and talk detailing the ongoing restoration of the historic Inchanga Railway Station. Learn about the town\u0027s industrial past.",
+    "Category": "Arts \u0026 Culture",
+    "StartDate": "2025-11-30T11:00:19.424",
+    "EndDate": "2025-11-30T14:00:00",
+    "Location": "Inchanga",
+    "MediaPath": "/uploads/events/1506693e-a690-4bbb-87f8-3d229c5540c4.jpg",
+    "Timestamp": "2025-10-15T00:15:54.4192353Z",
+    "Hashtags": [
+      "#HeritageSite",
+      "#Inchanga",
+      "#HistoryTour",
+      "#LocalCulture"
+    ],
+    "ShareUrl": "http://localhost:5170/Event/Details/07faf3b9-8682-4e84-8807-c983ffeaa229"
+  },
+  {
+    "Id": "5ad25be5-e51f-4d71-9b8b-a98e5c017756",
+    "Type": "Announcement",
+    "Title": "New Noise By-Law Effective December 1st",
+    "Description": "Following extensive consultation, the new Municipal Noise Pollution By-Law is officially gazetted. It mandates quieter hours and sets stricter penalties for non-compliance in residential areas.",
+    "Category": "Council \u0026 Policy Notice",
+    "StartDate": "2025-12-01T00:00:46.641",
+    "EndDate": "2025-12-31T23:59:00",
+    "Location": "Westville",
+    "MediaPath": "/uploads/events/026597d6-46cc-4ae6-8475-bc9ef8f2e1b6.jpg",
+    "Timestamp": "2025-10-14T23:57:46.3059102Z",
+    "Hashtags": [
+      "#ByLaw",
+      "#CouncilNotice",
+      "#NoisePollution",
+      "#CommunityRules"
+    ],
+    "ShareUrl": "http://localhost:5170/Event/Details/5ad25be5-e51f-4d71-9b8b-a98e5c017756"
+  },
+  {
+    "Id": "b9b79767-6a34-4f02-bd9f-e615d4086335",
+    "Type": "Event",
+    "Title": "Workshop: Navigating Municipal Business Licenses \u0026 Permits",
+    "Description": "A free session for new and existing business owners on the correct procedures and documentation required to obtain municipal operating licenses and permits quickly and efficiently.",
+    "Category": "Learning \u0026 Skill Building",
+    "StartDate": "2025-12-04T14:00:23.023",
+    "EndDate": "2025-12-04T16:30:00",
+    "Location": "Point Waterfront",
+    "MediaPath": "/uploads/events/ca8770fd-f578-45e6-8f42-c9fb029c0076.jpg",
+    "Timestamp": "2025-10-15T00:14:08.4222323Z",
+    "Hashtags": [
+      "#BusinessSupport",
+      "#PermitWorkshop",
+      "#Entrepreneurship",
+      "#DurbanBusiness"
+    ],
+    "ShareUrl": "http://localhost:5170/Event/Details/b9b79767-6a34-4f02-bd9f-e615d4086335"
+  },
+  {
+    "Id": "216b80ff-eb41-458d-a1d9-3a75076e0027",
+    "Type": "Announcement",
+    "Title": "Beach Warning: Increased Shark Activity at Amanzimtoti",
+    "Description": "Due to recent sightings and adverse sea conditions, a temporary ban on swimming and surfing is in effect. All beachgoers are advised to adhere to lifeguard instructions.",
+    "Category": "Health \u0026 Safety Warning",
+    "StartDate": "2025-12-28T07:00:00",
+    "EndDate": "2026-01-28T07:00:00",
+    "Location": "Amanzimtoti",
+    "MediaPath": "/uploads/events/13e8570b-6c0f-4d30-b1d3-6b717da3d6c2.jpg",
+    "Timestamp": "2025-10-14T23:54:38.8697182Z",
+    "Hashtags": [
+      "#BeachSafety",
+      "#SharkWarning",
+      "#Amanzimtoti",
+      "#SafetyFirst",
+      "#Beach"
+    ],
+    "ShareUrl": "http://localhost:5170/Event/Details/216b80ff-eb41-458d-a1d9-3a75076e0027"
+  }
+]

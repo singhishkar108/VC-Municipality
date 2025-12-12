@@ -1,0 +1,955 @@
+@model List<MunicipalityApp.Models.Event>
+@using System.Globalization;
+@using MunicipalityApp.Services;
+
+@{
+    ViewData["Title"] = "Local Events & Announcements";
+    var categories = ViewBag.Categories as List<string> ?? new List<string>();
+    var recommendations = ViewBag.Recommendations as List<MunicipalityApp.Models.Event> ?? new List<MunicipalityApp.Models.Event>();
+    var filters = ViewBag.Filters;
+    string selectedCategory = filters?.category ?? "";
+    string fromDate = filters?.fromDate ?? "";
+    string toDate = filters?.toDate ?? "";
+    string endFrom = filters?.endFrom ?? "";
+    string endTo = filters?.endTo ?? "";
+    string location = filters?.location ?? "";
+    string searchQuery = filters?.searchQuery ?? "";
+    string createdFrom = filters?.createdFrom ?? "";
+    string createdTo = filters?.createdTo ?? "";
+    string type = filters?.type ?? ""; // NEW: Get the current Type filter state
+
+    string dateFormat = "dd MMM yyyy, HH:mm";
+    var culture = CultureInfo.InvariantCulture;
+
+    // Helper to generate the base query string for the toggle links
+    string GenerateQuery(string newType)
+    {
+        var dict = new Dictionary<string, string?>
+        {
+            { "category", selectedCategory },
+            { "location", location },
+            { "fromDate", fromDate },
+            { "toDate", toDate },
+            { "endFrom", endFrom },
+            { "endTo", endTo },
+            { "createdFrom", createdFrom },
+            { "createdTo", createdTo },
+            // Removed hashtags from existing view context, but keeping it in the controller is fine.
+            { "searchQuery", searchQuery },
+            { "type", newType }
+        };
+        // Build query string, filtering out empty values
+        var query = string.Join("&", dict.Where(kv => !string.IsNullOrEmpty(kv.Value)).Select(kv => $"{kv.Key}={kv.Value}"));
+        return query;
+    }
+}
+
+<style>
+    /* CSS variables and general styles */
+    :root {
+        --primary-blue: #004d9e;
+        --light-blue: #007ac3;
+        --dark-gray: #2c3e50;
+        --light-gray: #ecf0f1;
+        --subtle-gray: #bdc3c7;
+        --podium-blue: #0A2342; /* Used for the main carousel background */
+        --shadow-elevation-2: 0 4px 12px rgba(0, 0, 0, 0.08);
+        --transition-speed: 0.3s;
+    }
+
+    /* General Layout */
+    body {
+        background-color: #f7f9fc;
+    }
+
+    .events-container {
+        padding: 2rem 0;
+    }
+
+    /* --- ADMIN/PUBLIC PAGE HEADER STYLES --- */
+    .page-header-admin {
+        padding: 1.5rem 0 2rem 0; /* Minimized bottom padding */
+        text-align: center;
+    }
+
+    .page-header-admin h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--dark-gray);
+        margin-bottom: 0.5rem;
+    }
+
+    .page-header-admin p {
+        font-size: 1rem;
+        color: #777;
+        font-style: italic;
+    }
+
+    /* --- ADMIN-STYLE FILTER CARD --- */
+    .filter-card-admin {
+        background-color: white;
+        padding: 1.25rem 1.5rem; /* Minimized padding */
+        border-radius: 8px;
+        box-shadow: var(--shadow-elevation-2);
+        margin-bottom: 3rem; /* Minimized margin */
+    }
+
+    .filter-card-admin .form-label {
+        font-weight: 600;
+        color: var(--dark-gray);
+        margin-bottom: 0.4rem;
+        font-size: 0.9rem; /* Slightly smaller labels */
+        width: 100%; /* Important for labels to span above the input */
+    }
+
+    .filter-card-admin .form-control,
+    .filter-card-admin .form-select {
+        border-radius: 6px;
+        padding: 0.5rem 0.75rem;
+        border-color: var(--subtle-gray);
+        font-size: 0.95rem;
+    }
+
+    .filter-card-admin .btn-primary {
+        background-color: var(--primary-blue);
+        border-color: var(--primary-blue);
+        transition: background-color var(--transition-speed);
+    }
+
+    .filter-card-admin .btn-primary:hover {
+        background-color: #003a7a;
+        border-color: #003a7a;
+    }
+
+    /* Ensure action buttons are appropriately sized and spaced */
+    .action-button-size {
+        /* Keep vertical padding the same, but full width makes horizontal padding less relevant */
+        padding: 0.6rem 1rem;
+        font-size: 1rem; /* Slightly larger font for prominence */
+        height: 100%; /* Ensure it fills the height of the button group */
+    }
+
+    /* === FILTER LAYOUT STYLES === */
+    .filter-card-admin .row-line {
+        display: flex;
+        flex-wrap: wrap; /* Allows wrapping on smaller screens */
+        gap: 1rem; /* Space between fields in a row */
+        margin-bottom: 1rem; /* Space between rows */
+        align-items: flex-end; /* Align all items to the bottom of the row */
+    }
+
+    .filter-card-admin .row-line:last-child {
+        margin-bottom: 0;
+    }
+
+    .filter-field {
+        /* Default for smaller fields (Category, Dates, Location) */
+        flex-grow: 1; /* Allow fields to grow to fill space */
+        min-width: 150px; /* Ensures fields aren't too small */
+    }
+
+    .search-input-wrapper {
+        /* Search bar will take up most of the space */
+        flex-grow: 3;
+        min-width: 250px;
+    }
+
+    /* Filter Action Buttons (Apply/Clear) */
+    .action-button-row {
+        width: 100%; /* Spans the full width of the filter-card */
+        display: flex;
+        justify-content: flex-start;
+        margin-top: 1rem;
+    }
+
+    .button-group-wrapper {
+        /* Force this container to take up the full width of the filter-card content area */
+        flex-grow: 1;
+        min-width: 100%;
+        display: flex;
+        gap: 1rem; /* Space between the two buttons */
+    }
+
+    /* Make buttons equal width within their wrapper and long/narrow */
+    .button-group-wrapper .btn {
+        flex-grow: 1;
+        width: 50%;
+        font-weight: 600;
+    }
+    /* === END FILTER LAYOUT STYLES === */
+
+    /* === ARCHIVED BUTTON STYLING CHANGES === */
+    .archived-button-wrapper {
+        /* This container enforces the same max width as the filter card itself */
+        max-width: 100%;
+        margin: 0 auto; /* Center the wrapper */
+        display: flex;
+        justify-content: center;
+    }
+
+    .archived-button {
+        /* We want this button to be prominent, but maybe slightly different from Apply Filters */
+        background-color: var(--light-blue); /* Use light blue for a different, but still primary, feel */
+        border-color: var(--light-blue);
+        color: white;
+        font-weight: 600;
+        padding: 0.8rem 2rem; /* Make it taller and give it more padding */
+        border-radius: 8px; /* Match filter card roundedness */
+        transition: background-color var(--transition-speed);
+        width: 100%; /* Make it full width of its column */
+        max-width: 400px; /* Set a max width for desktop viewing to keep it centered and not overly wide */
+    }
+
+    .archived-button:hover {
+        color: white;
+        background-color: var(--primary-blue);
+        border-color: var(--primary-blue);
+    }
+
+    /* Standard Event Card Styles (Keeping for context) */
+    .event-card {
+        border-radius: 12px;
+        overflow: hidden;
+        border: none;
+        box-shadow: 0 6px 18px rgba(15, 23, 42, .08);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .event-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(15, 23, 42, .15);
+    }
+
+    .event-media {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+        display: block;
+        filter: brightness(0.95);
+    }
+
+    .event-title {
+        font-weight: 700;
+        color: var(--podium-blue);
+        font-size: 1.25rem;
+        line-height: 1.4;
+        max-height: 2.8em;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    .event-meta {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+    }
+
+    .event-description {
+        font-size: 0.95rem;
+        color: var(--dark-gray);
+        line-height: 1.4;
+        max-height: 4.2em;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+    }
+
+    .badge-hashtag {
+        background-color: var(--light-gray);
+        color: var(--primary-blue);
+        padding: 0.3em 0.6em;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        margin-right: 4px;
+        margin-top: 4px;
+        display: inline-block;
+        white-space: nowrap;
+    }
+    
+    /* Specific styling for the yellow announcement badge to ensure text contrast */
+    .bg-warning-custom {
+        background-color: #ffc107 !important; /* Standard Bootstrap warning yellow */
+        color: #212529 !important; /* Dark text for contrast */
+    }
+
+    /* --- CAROUSEL STYLES --- */
+
+    .carousel-full-width {
+        background: var(--podium-blue);
+        padding: 2.5rem 0;
+        margin-bottom: 4rem;
+        position: relative;
+        z-index: 1;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .reco-header {
+        color: white !important;
+        font-weight: 700;
+        font-size: 1.75rem;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    /* Define card size and aspect ratio */
+    .card-landscape {
+        width: 450px; /* Fixed width */
+        height: 300px; /* Fixed height for consistent track size */
+        max-width: 90vw;
+    }
+
+    .carousel-track {
+        position: relative;
+        height: 330px;
+        perspective: 1000px;
+        width: 100%;
+    }
+
+    .carousel-card {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.6s ease-out, box-shadow 0.3s ease-in-out;
+        cursor: pointer;
+        will-change: transform, opacity;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+        opacity: 0;
+        z-index: 10;
+        text-decoration: none !important;
+    }
+
+    /* Active card shadow for emphasis */
+    .carousel-card.active {
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+        opacity: 1 !important;
+    }
+
+    /* Media inside the card */
+    .reco-media-container {
+        width: 100%;
+        height: 100%;
+        background-color: #1e293b;
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        align-items: flex-end;
+        padding: 1.5rem;
+    }
+
+    .reco-overlay {
+        background: rgba(0, 0, 0, 0.7);
+        padding: 1rem;
+        border-radius: 0.5rem;
+        backdrop-filter: blur(2px);
+        width: 100%;
+        color: white;
+    }
+
+    .reco-title {
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin-bottom: 0.25rem;
+        line-height: 1.2;
+        color: white !important;
+    }
+
+    .reco-date-meta {
+        font-size: 0.9rem;
+        color: white !important;
+    }
+
+    /* Hide text details on non-active cards */
+    .carousel-card:not(.active) .reco-details {
+        display: none;
+    }
+
+    /* Navigation Controls */
+    .carousel-control {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 3rem;
+        height: 3rem;
+        background-color: rgba(0, 0, 0, 0.5);
+        color: white;
+        z-index: 50;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.2s, transform 0.2s;
+    }
+
+    .carousel-control:hover {
+        background-color: rgba(0, 0, 0, 0.8);
+        transform: translateY(-50%) scale(1.1);
+    }
+
+    .carousel-control-prev {
+        left: 0;
+        border-radius: 0 9999px 9999px 0;
+    }
+
+    .carousel-control-next {
+        right: 0;
+        border-radius: 9999px 0 0 9999px;
+    }
+
+    /* Responsive adjustments */
+    @@media (max-width: 768px) {
+        .carousel-track {
+            height: 25vh;
+        }
+
+        .card-landscape {
+            width: 90vw;
+            height: 50vw;
+            min-width: unset;
+        }
+    }
+    
+    /* --- TOGGLE SWITCH STYLES (FROM Button Toggle.txt) --- */
+    .toggle-switch-wrapper {
+        position: relative;
+        display: flex;
+        width: 100%;
+        max-width: 400px;
+        height: 50px;
+        background-color: white;
+        border: 1px solid var(--subtle-gray);
+        border-radius: 10px;
+        padding: 4px;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1rem;
+        margin-left: auto; /* Center on large screens */
+        margin-right: auto; /* Center on large screens */
+    }
+
+    .toggle-switch-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 1;
+        cursor: pointer;
+        z-index: 2;
+        color: var(--primary-blue);
+        font-weight: 600;
+        transition: color var(--transition-speed);
+        padding: 0 10px;
+        height: 100%;
+        font-size: 0.95rem;
+        background-color: transparent;
+        text-decoration: none; /* Crucial for links */
+    }
+
+    .toggle-slider {
+        position: absolute;
+        top: 4px;
+        /* Width is calculated to be 50% minus the padding on both sides (4px * 2) */
+        width: calc(50% - 4px); 
+        height: calc(100% - 8px);
+        background-color: var(--primary-blue);
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+        transition: transform var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 1; /* Below the links/labels */
+    }
+
+    /* State classes for the slider movement and text color */
+    .event-active .toggle-slider {
+        transform: translateX(0);
+    }
+    .announcement-active .toggle-slider {
+        transform: translateX(100%);
+    }
+
+    .event-active .event-link {
+        color: white;
+    }
+    .announcement-active .announcement-link {
+        color: white;
+    }
+
+    /* Override the default link behavior for the non-active link */
+    .toggle-switch-link:hover {
+        color: var(--primary-blue); /* Default color on hover */
+    }
+    .event-active .event-link:hover,
+    .announcement-active .announcement-link:hover {
+        color: white; /* Active link maintains white color on hover */
+    }
+
+</style>
+
+<div class="container events-container">
+
+    <div class="row">
+        <div class="col-12 page-header-admin">
+            <h1>Local Events & Announcements</h1>
+            <p>Find upcoming local events, announcements, and community updates.</p>
+        </div>
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-12 filter-card-admin">
+            <form method="get" class="g-3">
+                
+                @* Preserve the Type filter when applying other filters, if one is active *@
+                @if (!string.IsNullOrWhiteSpace(type))
+                {
+                    <input type="hidden" name="type" value="@type" />
+                }
+                
+                <div class="row-line">
+                    <div class="search-input-wrapper">
+                        <label class="form-label">Search Title/Description/Location</label>
+                        <input type="text" name="searchQuery" value="@searchQuery"
+                                placeholder="Search title, description, or location" class="form-control" />
+                    </div>
+                </div>
+
+                <div class="row-line">
+                    <div class="filter-field">
+                        <label class="form-label">Category</label>
+                        <select name="category" class="form-select">
+                            <option value="">All Categories</option>
+                            @foreach (var c in categories)
+                            {
+                                <option value="@c"
+                                        selected="@(string.Equals(c, selectedCategory, StringComparison.OrdinalIgnoreCase) ? "selected" : null)">
+                                    @c
+                                </option>
+                            }
+                        </select>
+                    </div>
+
+                    @* --- START DATE RANGE (Combined) --- *@
+                    <div class="filter-field">
+                        <label class="form-label">START DATE RANGE</label>
+                        <div class="input-group">
+                            <input type="date" name="fromDate" value="@fromDate" class="form-control" title="From" placeholder="yyyy/mm/dd" />
+                            <input type="date" name="toDate" value="@toDate" class="form-control" title="To" placeholder="yyyy/mm/dd" />
+                        </div>
+                    </div>
+                    @* --- END DATE RANGE (Combined) --- *@
+                    <div class="filter-field">
+                        <label class="form-label">END DATE RANGE</label>
+                        <div class="input-group">
+                            <input type="date" name="endFrom" value="@endFrom" class="form-control" title="From" placeholder="yyyy/mm/dd" />
+                            <input type="date" name="endTo" value="@endTo" class="form-control" title="To" placeholder="yyyy/mm/dd" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row-line">
+                    <div class="filter-field">
+                        <label class="form-label">Location</label>
+                        <select name="location" class="form-select">
+                            <option value="">All Locations</option>
+                            @foreach (var loc in ViewBag.Locations as List<string> ?? new List<string>())
+                            {
+                                <option value="@loc"
+                                        selected="@(string.Equals(loc, location, StringComparison.OrdinalIgnoreCase) ? "selected" : null)">
+                                    @loc
+                                </option>
+                            }
+                        </select>
+                    </div>
+
+                    @* --- CREATED DATE RANGE (New/Combined) --- *@
+                    <div class="filter-field">
+                        <label class="form-label">CREATED DATE RANGE</label>
+                        <div class="input-group">
+                            <input type="date" name="createdFrom" value="@createdFrom" class="form-control" title="From" placeholder="yyyy/mm/dd" />
+                            <input type="date" name="createdTo" value="@createdTo" class="form-control" title="To" placeholder="yyyy/mm/dd" />
+                        </div>
+                    </div>
+
+                    @* --- EMPTY FIELD FOR LAYOUT (If needed to maintain 3-column layout) --- *@
+                    <div class="filter-field">
+                        <label class="form-label" style="opacity: 0;">&nbsp;</label>
+                        <div class="input-group">
+                            @* Empty *@
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row-line action-button-row">
+                    <div class="button-group-wrapper">
+                        <button type="submit" class="btn btn-primary action-button-size">
+                            <i class="bi bi-funnel-fill me-1"></i> Apply Filters
+                        </button>
+                        @* Clear button clears all filters *@
+                        <a asp-action="Index" class="btn btn-outline-dark action-button-size">
+                            <i class="bi bi-x-circle-fill"></i> Clear
+                        </a>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div> @* End of first container to allow full-width carousel *@
+
+@if (recommendations != null && recommendations.Any())
+{
+    <div class="carousel-full-width">
+        <div class="container">
+            <h2 class="reco-header">Recommended For You</h2>
+        </div>
+
+        <div id="carousel" class="relative w-full max-w-7xl">
+            <div id="carousel-track" class="carousel-track">
+                @{
+                    for (int i = 0; i < recommendations.Count; i++)
+                    {
+                        var r = recommendations[i];
+                        <a asp-action="AdminDetails" asp-route-id="@r.Id"
+                            class="carousel-card card-landscape @(i == 0 ? "active" : "")"
+                            data-index="@i">
+
+                            <div class="reco-media-container"
+                                 style="background-image: url('@r.MediaPath');">
+
+                                <div class="reco-overlay">
+                                    @{
+                                        // LOGIC CHANGE: Use bg-warning-custom for Announcement
+                                        string itemType = r.Type?.ToString() ?? "Event"; // Fallback to "Event"
+                                        string typeDisplay = itemType.Equals(EventService.EventTypes.Announcement, StringComparison.OrdinalIgnoreCase) ? "Announcement" : "Event";
+                                        string typeClass = typeDisplay.Equals("Announcement") ? "bg-warning-custom" : "bg-primary";
+                                        string typeIcon = typeDisplay.Equals("Announcement") ? "bi-megaphone-fill" : "bi-calendar-event-fill";
+                                    }
+                                    @* START: New Type Badge in Carousel *@
+                                    <div class="mb-2">
+                                        <span class="badge rounded-pill @typeClass p-2">
+                                            <i class="bi @typeIcon me-1"></i> @typeDisplay
+                                        </span>
+                                    </div>
+                                    @* END: New Type Badge in Carousel *@
+
+                                    <h2 class="reco-title text-truncate">@r.Title</h2>
+                                    <div class="reco-details">
+                                        <div class="reco-date-meta">
+                                            @if (typeDisplay == "Event")
+                                            {
+                                                // Only events have a clear start date/time
+                                                <i class="bi bi-calendar-check me-1"></i>
+                                                @r.StartDate.ToLocalTime().ToString(dateFormat, culture)
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    }
+                }
+            </div>
+
+            <button id="prev-btn" class="carousel-control carousel-control-prev">
+                <i class="bi bi-chevron-left carousel-control-icon"></i>
+            </button>
+            <button id="next-btn" class="carousel-control carousel-control-next">
+                <i class="bi bi-chevron-right carousel-control-icon"></i>
+            </button>
+        </div>
+
+        <div id="carousel-dots" class="flex justify-content-center gap-2 mt-4">
+            @* Dots will be generated by JavaScript *@
+        </div>
+    </div>
+}
+
+<div class="container mb-4">
+    <div class="row">
+        <div class="col-12 d-flex justify-content-center">
+            @* START: Type Filter Toggle Slider *@
+            @{
+                string eventType = EventService.EventTypes.Event; // "Event"
+                string announcementType = EventService.EventTypes.Announcement; // "Announcement"
+                string currentType = string.IsNullOrWhiteSpace(type) || type.Equals(eventType, StringComparison.OrdinalIgnoreCase) ? eventType : announcementType;
+                string toggleClass = currentType.Equals(eventType) ? "event-active" : "announcement-active";
+            }
+            <div class="toggle-switch-wrapper @toggleClass">
+                
+                @* Event Link *@
+                <a asp-action="Index" asp-all-route-data='new Dictionary<string, string?> { { "type", eventType } }'
+                   asp-route-category="@selectedCategory" asp-route-location="@location"
+                   asp-route-searchQuery="@searchQuery"
+                   class="toggle-switch-link event-link">
+                    <i class="bi bi-calendar-event me-2"></i> Events
+                </a>
+                
+                @* Announcement Link *@
+                <a asp-action="Index" asp-all-route-data='new Dictionary<string, string?> { { "type", announcementType } }'
+                   asp-route-category="@selectedCategory" asp-route-location="@location"
+                   asp-route-searchQuery="@searchQuery"
+                   class="toggle-switch-link announcement-link">
+                    <i class="bi bi-megaphone-fill me-2"></i> Announcements
+                </a>
+                
+                <span class="toggle-slider"></span>
+            </div>
+            @* END: Type Filter Toggle Slider *@
+        </div>
+    </div>
+</div>
+
+
+<div class="container">
+    <div class="row g-4">
+        @if (Model == null || !Model.Any())
+        {
+            <div class="col-12">
+                <div class="alert alert-info text-center py-4 rounded-3 shadow-sm">
+                    <i class="bi bi-info-circle-fill me-2"></i> No events match the current filter criteria.
+                </div>
+            </div>
+        }
+        else
+        {
+            @* The foreach loop ensures ALL items in the Model are displayed *@
+            foreach (var ev in Model)
+            {
+                <div class="col-sm-6 col-lg-4">
+                    <div class="event-card">
+                        <a asp-action="AdminDetails" asp-route-id="@ev.Id" class="text-decoration-none text-dark">
+                            @if (!string.IsNullOrWhiteSpace(ev.MediaPath))
+                            {
+                                <img src="@ev.MediaPath" alt="@ev.Title" class="event-media" />
+                            }
+                            else
+                            {
+                                <div class="bg-light d-flex align-items-center justify-content-center" style="height:180px;">
+                                    <span class="text-muted"><i class="bi bi-image me-1"></i> No media available</span>
+                                </div>
+                            }
+                        </a>
+
+                        <div class="p-4">
+                            @{
+                                // LOGIC CHANGE: Use bg-warning-custom for Announcement
+                                string itemType = ev.Type?.ToString() ?? "Event"; // Fallback to "Event"
+                                string typeDisplay = itemType.Equals(EventService.EventTypes.Announcement, StringComparison.OrdinalIgnoreCase) ? "Announcement" : "Event";
+                                string typeClass = typeDisplay.Equals("Announcement") ? "bg-warning-custom" : "bg-primary";
+                                string typeIcon = typeDisplay.Equals("Announcement") ? "bi-megaphone-fill" : "bi-calendar-event-fill";
+                            }
+                            @* START: New Type Badge in Main Card (Always visible) *@
+                            <div class="mb-2">
+                                <span class="badge rounded-pill @typeClass p-2 text-white">
+                                    <i class="bi @typeIcon me-1"></i> @typeDisplay
+                                </span>
+                            </div>
+                            @* END: New Type Badge in Main Card *@
+
+                            <a asp-action="AdminDetails" asp-route-id="@ev.Id" class="text-decoration-none">
+                                <h5 class="event-title mb-1" title="@ev.Title">@ev.Title</h5>
+                            </a>
+
+                            <div class="event-meta">
+                                @if (typeDisplay == "Event")
+                                {
+                                    // Only events have a location
+                                    <i class="bi bi-geo-alt-fill"></i> @(string.IsNullOrWhiteSpace(ev.Location) ? "Unspecified Location" : ev.Location)
+                                    <span class="mx-1 text-muted">|</span>
+                                }
+                                <span class="badge rounded-pill bg-secondary bg-opacity-10 text-dark">@ev.Category</span>
+                            </div>
+
+                            <p class="event-description mb-3" title="@ev.Description">
+                                @(string.IsNullOrWhiteSpace(ev.Description) ? "No detailed description provided." : ev.Description)
+                            </p>
+
+<div class="mb-3">
+    @if (ev.Hashtags?.Any() == true)
+    {
+        @foreach (var h in ev.Hashtags.Take(3))
+        {
+            <a asp-action="Hashtags" asp-route-hashtag="@h" class="badge-hashtag text-decoration-none">@h</a>
+        }
+
+        @if (ev.Hashtags.Count > 3)
+        {
+            <span class="badge-hashtag text-muted" title="@(string.Join(", ", ev.Hashtags))">
+                +@(ev.Hashtags.Count - 3) more
+            </span>
+        }
+    }
+</div>
+
+
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                @* LOGIC CHANGE: Show start date/time for Events, or Posted time for Announcements *@
+                                @if (typeDisplay == "Event")
+                                {
+                                    <div>
+                                        <div class="event-meta mb-0">Starts:</div>
+                                        <div class="fw-bold text-success">
+                                            <i class="bi bi-calendar-event me-1"></i>
+                                            @ev.StartDate.ToLocalTime().ToString(dateFormat, culture)
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div>
+                                        <div class="event-meta mb-0">Posted:</div>
+                                        <div class="fw-bold text-info">
+                                            <i class="bi bi-clock-history me-1"></i>
+                                            @ev.StartDate.ToLocalTime().ToString(dateFormat, culture)
+                                        </div>
+                                    </div>
+                                }
+                                <div class="text-end">
+                                    <a asp-action="AdminDetails" asp-route-id="@ev.Id" class="btn btn-sm btn-primary">
+                                        View Details
+                                    </a>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-12 text-center archived-button-wrapper">
+            <a asp-action="Archived" class="btn archived-button">
+                <i class="bi bi-archive-fill me-1"></i> See Archived Events
+            </a>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const cards = document.querySelectorAll('.carousel-card');
+            const totalSlides = cards.length;
+            if (totalSlides === 0) return;
+
+            let currentIndex = 0;
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const dotsContainer = document.getElementById('carousel-dots');
+
+            // --- Core Carousel Logic (Updated for 3D Positioning) ---
+
+            function updateCarousel() {
+                cards.forEach((card, index) => {
+                    const offset = index - currentIndex;
+
+                    let transform = `translate(-50%) scale(0.65)`;
+                    let opacity = '0';
+                    let zIndex = '10';
+
+                    // 1. Active (Center)
+                    if (offset === 0) {
+                        // Higher position (negative Y translate)
+                        transform = 'translate(-50%, -15px) scale(1)';
+                        opacity = '1';
+                        zIndex = '30';
+                        card.classList.add('active');
+                    }
+                    // 2. Immediate Left (Peeking)
+                    else if (offset === -1 || (offset === (totalSlides - 1) && currentIndex === 0)) {
+                        // Lower position (positive Y translate) and moved left
+                        transform = 'translate(-120%, 30px) scale(0.8)';
+                        opacity = '0.7';
+                        zIndex = '20';
+                        card.classList.remove('active');
+                    }
+                    // 3. Immediate Right (Peeking)
+                    else if (offset === 1 || (offset === -(totalSlides - 1) && currentIndex === totalSlides - 1)) {
+                        // Lower position (positive Y translate) and moved right
+                        transform = 'translate(20%, 30px) scale(0.8)';
+                        opacity = '0.7';
+                        zIndex = '20';
+                        card.classList.remove('active');
+                    } else {
+                        card.classList.remove('active');
+                    }
+
+
+                    card.style.transform = transform;
+                    card.style.opacity = opacity;
+                    card.style.zIndex = zIndex;
+                });
+                updateDots();
+            }
+
+            // --- Navigation Logic ---
+
+            function goToNext() {
+                currentIndex = (currentIndex + 1) % totalSlides;
+                updateCarousel();
+            }
+
+            function goToPrev() {
+                currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
+                updateCarousel();
+            }
+
+            // --- Dots Logic ---
+            function generateDots() {
+                for (let i = 0; i < totalSlides; i++) {
+                    const dot = document.createElement('button');
+                    dot.classList.add('w-3', 'h-3', 'rounded-circle', 'bg-secondary', 'transition-colors');
+                    dot.setAttribute('data-index', i);
+                    dot.addEventListener('click', () => {
+                        currentIndex = i;
+                        updateCarousel();
+                    });
+                    dotsContainer.appendChild(dot);
+                }
+            }
+
+            function updateDots() {
+                const dots = dotsContainer.querySelectorAll('button');
+                dots.forEach((dot, index) => {
+                    if (index === currentIndex) {
+                        dot.classList.remove('bg-secondary');
+                        dot.classList.add('bg-light');
+                    } else {
+                        dot.classList.remove('bg-light');
+                        dot.classList.add('bg-secondary');
+                    }
+                });
+            }
+
+            // --- Initialization and Event Listeners ---
+
+            generateDots();
+            updateCarousel(); // Initial rendering
+
+            if (prevBtn) prevBtn.addEventListener('click', goToPrev);
+            if (nextBtn) nextBtn.addEventListener('click', goToNext);
+
+            cards.forEach((card, index) => {
+                card.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (index !== currentIndex) {
+                        currentIndex = index;
+                        updateCarousel();
+                    } else {
+                        window.location.href = card.href;
+                    }
+                });
+            });
+        });
+    </script>
+}

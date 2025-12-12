@@ -1,0 +1,434 @@
+@model MunicipalityApp.Models.ServiceRequest
+@using System.Linq
+@{
+    ViewData["Title"] = "Service Request Details";
+
+    // Retrieve ViewBag items
+    var serviceTypes = ViewBag.ServiceTypes as string[] ?? Array.Empty<string>();
+    var departments = ViewBag.Departments as string[] ?? Array.Empty<string>();
+    var statuses = ViewBag.Statuses as string[] ?? Array.Empty<string>();
+    var priorities = ViewBag.Priorities as int[] ?? Array.Empty<int>();
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+@* --- Consolidated Styling Block (Matching AdminIndex) --- *@
+<style>
+    :root {
+        --primary-blue: #004d9e;
+        --light-blue: #007ac3;
+        --dark-gray: #333;
+        --light-gray: #f2f2f2;
+        --border-color: #ddd;
+        --podium-blue: #0A2342;
+        /* Primary Admin/Header Color */
+        --view-details-blue: #3498db;
+        --dark-secondary: #495057;
+    }
+
+    /* Centralized Heading Style */
+    .form-header {
+        font-size: 2.25rem;
+        font-weight: 800;
+        color: var(--podium-blue);
+        margin-bottom: 0.25rem;
+    }
+
+    .form-subtitle {
+        font-size: 1rem;
+        color: #6c757d;
+        margin-bottom: 2.5rem;
+    }
+
+    /* Card/Panel Styling */
+    .detail-card {
+        background-color: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        /* Animation: subtle lift on hover */
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        /* Ensures all cards in the same row take equal height */
+        height: 100%;
+    }
+
+    .detail-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .detail-card h4 {
+        font-weight: 700;
+        color: var(--primary-blue);
+        border-bottom: 2px solid var(--light-gray);
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    /* Description Card - Used a specific style to make it stand out */
+    .description-card {
+        border-left: 5px solid var(--primary-blue);
+        background-color: var(--light-gray);
+        min-height: 150px;
+        /* Ensure visual space */
+    }
+
+    /* Definition List Styling */
+    .detail-list dt {
+        font-weight: 600;
+        color: var(--dark-secondary);
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        margin-bottom: 0;
+        border-bottom: 1px dashed var(--border-color);
+    }
+
+    .detail-list dd {
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        margin-bottom: 0;
+        border-bottom: 1px dashed var(--border-color);
+    }
+
+    /* Custom class to make the Location and Citizen cards fill the remaining height in their column */
+    .fill-height-card {
+        height: 100%;
+    }
+
+    /* Dropdown Styling */
+    .form-select.admin-detail-update {
+        font-size: 0.9rem;
+        padding: 0.375rem 0.75rem 0.375rem 0.5rem;
+        height: auto;
+        transition: all 0.3s ease;
+        border-color: var(--border-color);
+    }
+
+    .form-select.admin-detail-update:focus {
+        border-color: var(--light-blue);
+        box-shadow: 0 0 0 0.25rem rgba(0, 77, 158, 0.25);
+    }
+
+    /* Button Styling */
+    .btn-action {
+        font-size: 1rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn-action:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-back {
+        background-color: var(--dark-secondary);
+        border-color: var(--dark-secondary);
+    }
+
+    .btn-download-zip {
+        background-color: var(--view-details-blue);
+        border-color: var(--view-details-blue);
+    }
+
+    /* Status Display */
+    .status-display {
+        font-weight: 700;
+        color: var(--primary-blue);
+        /* Default blue for text */
+    }
+
+    .status-display.cancelled {
+        color: #e74c3c;
+        /* Red */
+    }
+
+    /* FIX: Custom styling for the full-width bottom section */
+    .full-width-section {
+        display: flex;
+        gap: 1.5rem;
+        /* Standard Bootstrap gutter size */
+        margin-bottom: 2rem;
+    }
+
+    .attachments-card {
+        flex: 1;
+        /* Take up equal space */
+        min-height: 175px;
+        /* Maintain symmetry with button card */
+        display: flex;
+        flex-direction: column;
+    }
+
+    .back-button-container {
+        flex: 1;
+        /* Take up equal space */
+        min-height: 175px;
+        /* Maintain symmetry with attachments card */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        /* Vertically center the button */
+        align-items: center;
+        padding: 1.5rem;
+        /* Matches detail-card padding */
+        background-color: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .back-button-container:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-back.full-width {
+        width: 80%;
+        max-width: 300px;
+    }
+</style>
+
+<div class="container mt-5">
+    @* --- Centralized Heading --- *@
+    <div class="text-center mb-5">
+        <h1 class="form-header"><i class="bi bi-file-earmark-bar-graph me-2"></i> @ViewData["Title"]</h1>
+        <p class="form-subtitle">Detailed view and management for: @Model.Title</p>
+        <p class="form-subtitle">Request ID: @Model.RequestID</p>
+    </div>
+
+    @* --- Top Section: Request, Location, Citizen Details (Equal Height Row) --- *@
+    <div class="row d-flex align-items-stretch">
+        @* Request Details Card - Col 1 *@
+        <div class="col-lg-6 d-flex">
+            <div class="detail-card animate__animated animate__fadeInLeft">
+                <h4><i class="bi bi-info-circle me-2"></i> Request Details</h4>
+                <dl class="row detail-list" data-request-id="@Model.RequestID">
+                    <dt class="col-sm-4">ID:</dt>
+                    <dd class="col-sm-8">@Model.RequestID</dd>
+
+                    <dt class="col-sm-4">Title:</dt>
+                    <dd class="col-sm-8">@Model.Title</dd>
+
+                    <dt class="col-sm-4">Service Type:</dt>
+                    <dd class="col-sm-8">
+                        <select class="form-select admin-detail-update" data-property="ServiceType"
+                            data-current="@Model.ServiceType">
+                            @foreach (var type in serviceTypes)
+                            {
+                                <option value="@type" selected="@(type == Model.ServiceType)">@type</option>
+                            }
+                        </select>
+                    </dd>
+
+                    <dt class="col-sm-4">Status:</dt>
+                    <dd class="col-sm-8">
+                        <select class="form-select admin-detail-update" data-property="Status"
+                            data-current="@Model.Status">
+                            @foreach (var status in statuses)
+                            {
+                                <option value="@status" selected="@(status == Model.Status)">@status</option>
+                            }
+                        </select>
+                    </dd>
+
+                    <dt class="col-sm-4">Priority Level:</dt>
+                    <dd class="col-sm-8">
+                        <select class="form-select admin-detail-update" data-property="PriorityLevel"
+                            data-current="@Model.PriorityLevel">
+                            @foreach (var priority in priorities.OrderByDescending(p => p))
+                            {
+                                <option value="@priority" selected="@(priority == Model.PriorityLevel)">
+                                    @priority (@(priority == 5 ? "Highest" : priority == 1 ? "Lowest" : ""))
+                                </option>
+                            }
+                        </select>
+                    </dd>
+
+                    <dt class="col-sm-4">Assigned Department:</dt>
+                    <dd class="col-sm-8">
+                        <select class="form-select admin-detail-update" data-property="AssignedDepartment"
+                            data-current="@Model.AssignedDepartment">
+                            @foreach (var dept in departments)
+                            {
+                                <option value="@dept" selected="@(dept == Model.AssignedDepartment)">@dept</option>
+                            }
+                        </select>
+                    </dd>
+
+                    <dt class="col-sm-4">Date Requested:</dt>
+                    <dd class="col-sm-8">@Model.DateRequested.ToString("yyyy-MM-dd HH:mm")</dd>
+
+                    <dt class="col-sm-4">Completed Date:</dt>
+                    <dd class="col-sm-8" id="completedDateDisplay">
+                        @if (Model.Status == "Cancelled")
+                        {
+                            <span class="status-display cancelled"><i class="bi bi-x-circle me-1"></i> Request
+                                Cancelled</span>
+                        }
+                        else
+                        {
+                            <span class="status-display">@(Model.CompletedDate.HasValue ?
+                                                        Model.CompletedDate.Value.ToString("yyyy-MM-dd HH:mm") : "N/A")</span>
+                        }
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        @* Location and Citizen Details - Col 2 (Using nested flex to fill remaining height) *@
+        <div class="col-lg-6 d-flex flex-column">
+            <div class="detail-card fill-height-card animate__animated animate__fadeInRight">
+                <h4><i class="bi bi-geo-alt-fill me-2"></i> Location Details</h4>
+                <dl class="row detail-list">
+                    <dt class="col-sm-4">Address Line 1:</dt>
+                    <dd class="col-sm-8">@Model.StreetNumber</dd>
+                    <dt class="col-sm-4">Address Line 2:</dt>
+                    <dd class="col-sm-8">@Model.StreetAddressLine2</dd>
+                    <dt class="col-sm-4">Suburb:</dt>
+                    <dd class="col-sm-8">@Model.Suburb</dd>
+                    <dt class="col-sm-4">City:</dt>
+                    <dd class="col-sm-8">@Model.City</dd>
+                    <dt class="col-sm-4">Postal Code:</dt>
+                    <dd class="col-sm-8">@Model.PostalCode</dd>
+                    @* <dt class="col-sm-4">Coordinates:</dt>
+                    <dd class="col-sm-8">Lat: @Model.Latitude, Lon: @Model.Longitude</dd> *@
+                </dl>
+            </div>
+
+            <div class="detail-card fill-height-card animate__animated animate__fadeInRight">
+                <h4><i class="bi bi-person-fill me-2"></i> Citizen Details</h4>
+                <dl class="row detail-list">
+                    <dt class="col-sm-4">Name:</dt>
+                    <dd class="col-sm-8">@Model.CitizenName @Model.CitizenSurname</dd>
+                    <dt class="col-sm-4">Email:</dt>
+                    <dd class="col-sm-8">@Model.CitizenEmail</dd>
+                    <dt class="col-sm-4">Cell Number:</dt>
+                    <dd class="col-sm-8">@Model.CitizenCellNumber</dd>
+                    <dt class="col-sm-4">Tracking User:</dt>
+                    <dd class="col-sm-8">@Model.TrackingUsername</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    @* --- Middle Section: Description (Full Width) --- *@
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="detail-card description-card animate__animated animate__fadeInUp">
+                <h4><i class="bi bi-file-earmark-text-fill me-2"></i> Description</h4>
+                <p>@Model.Description</p>
+            </div>
+        </div>
+    </div>
+
+    @* --- Bottom Section: Attachments and Back Button (Full Width, Split Internally) --- *@
+    <div class="row mt-3 mb-5">
+        <div class="col-12">
+            @* The custom class 'full-width-section' replaces the need for a nested row,
+               making the attachments and button share the full width of the col-12 container. *@
+            <div class="full-width-section animate__animated animate__fadeInUp">
+
+                @* Attachments Card - 50% width *@
+                <div class="detail-card attachments-card">
+                    <h4><i class="bi bi-paperclip me-2"></i> Attachments</h4>
+                    <div class="card-body p-0">
+                        @if (Model.Attachments != null && Model.Attachments.Count > 0)
+                        {
+                            <a class="btn btn-action btn-download-zip text-white"
+                                href="@Url.Action("DownloadAttachments", "ServiceRequest", new { requestId = Model.RequestID })">
+                                <i class="bi bi-cloud-download-fill me-2"></i> Download All (@Model.Attachments.Count)
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="text-muted"><i class="bi bi-x-circle me-1"></i> No attachments provided.</span>
+                        }
+                    </div>
+                </div>
+
+                @* Back Button Container - 50% width *@
+                <div class="back-button-container">
+                    <a asp-action="AdminIndex" class="btn btn-action btn-secondary btn-back full-width text-white">
+                        <i class="bi bi-arrow-left me-2"></i> Back to Admin List
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+
+            $('.admin-detail-update').on('change', function () {
+                const selectElement = $(this);
+                const requestId = selectElement.closest('.detail-list').data('request-id');
+                const propertyName = selectElement.data('property');
+                const newValue = selectElement.val();
+                const currentValue = selectElement.data('current');
+
+                // Add a temporary visual feedback class
+                selectElement.addClass('bg-warning text-dark');
+
+                $.ajax({
+                    url: '@Url.Action("UpdateServiceRequestProperty", "ServiceRequest")',
+                    type: 'POST',
+                    data: {
+                        id: requestId,
+                        propertyName: propertyName,
+                        newValue: newValue
+                    },
+                    success: function (response) {
+                        selectElement.removeClass('bg-warning text-dark').addClass('bg-success text-white');
+
+                        if (response.success) {
+                            selectElement.data('current', newValue);
+
+                            // Update Completed Date display if it was part of the response (e.g., Status change)
+                            if (response.completedDate !== undefined) {
+                                const displaySpan = $('#completedDateDisplay span');
+                                displaySpan.removeClass('cancelled');
+
+                                if (newValue === 'Cancelled') {
+                                    displaySpan.addClass('cancelled').html('<i class="bi bi-x-circle me-1"></i> Request Cancelled');
+                                } else if (response.completedDate) {
+                                    displaySpan.text(response.completedDate);
+                                } else {
+                                    displaySpan.text('N/A');
+                                }
+                            }
+
+                            // Remove success class after a short delay
+                            setTimeout(() => {
+                                selectElement.removeClass('bg-success text-white');
+                            }, 1000);
+
+                        } else {
+                            // Revert the dropdown value on failure
+                            selectElement.val(currentValue).removeClass('bg-success text-white').addClass('bg-danger text-white');
+                            alert('Update failed: ' + response.message);
+                            setTimeout(() => {
+                                selectElement.removeClass('bg-danger text-white');
+                            }, 2000);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        // Revert the dropdown value on error
+                        selectElement.val(currentValue).removeClass('bg-warning bg-success text-dark text-white').addClass('bg-danger text-white');
+                        alert('An error occurred during update: ' + error);
+                        setTimeout(() => {
+                            selectElement.removeClass('bg-danger text-white');
+                        }, 2000);
+                    }
+                });
+            });
+        });
+    </script>
+}

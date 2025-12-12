@@ -1,0 +1,831 @@
+@model List<MunicipalityApp.Models.Event>
+
+@{
+    ViewData["Title"] = "Manage Events";
+
+    var categories = ViewBag.Categories as List<string> ?? new List<string>();
+    var locations = ViewBag.Locations as List<string> ?? new List<string>();
+    var filters = ViewBag.Filters;
+
+    string selectedCategory = filters?.category ?? "";
+    string selectedLocation = filters?.location ?? "";
+    string fromDate = filters?.fromDate ?? "";
+    string toDate = filters?.toDate ?? "";
+    // NEW: Extract End Date filter values
+    string endFrom = filters?.endFrom ?? "";
+    string endTo = filters?.endTo ?? "";
+
+    string createdFrom = filters?.createdFrom ?? "";
+    string createdTo = filters?.createdTo ?? "";
+    string hashtags = filters?.hashtags ?? ""; // Kept for logic/model, but removed from UI
+    string searchQuery = filters?.searchQuery ?? "";
+    string sortOrder = filters?.sortOrder ?? "";
+    string message = TempData["Message"] as string ?? "";
+}
+
+<style>
+    /* --- CSS Variables and Global Styles --- */
+    :root {
+        --primary-blue: #004d9e;
+        /* Main Brand Color (Active Text) */
+        --light-blue: #007ac3;
+        /* Hover Color */
+        --dark-gray: #2c3e50;
+        /* Primary Text */
+        --light-gray: #ecf0f1;
+        /* Background & Input */
+        --subtle-gray: #bdc3c7;
+        /* Subtle Borders/Text */
+        --podium-blue: #0A2342;
+        /* Table Header/Dark Accents */
+        --success-green: #27ae60;
+        --danger-red: #e74c3c;
+        /* Inactive/Over Text */
+        --removed-black: #212529;
+        /* Removed/Purged Text */
+        --shadow-elevation-2: 0 4px 12px rgba(0, 0, 0, 0.08);
+        --transition-speed: 0.3s;
+    }
+
+    body {
+        background-color: #f7f9fc;
+        /* Light, clean background */
+    }
+
+    .blog-container {
+        padding: 2rem 0;
+    }
+
+    /* --- Typography and Header --- */
+    .form-header {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--podium-blue);
+        margin-bottom: 0.5rem;
+        text-align: center;
+    }
+
+    .form-subtitle {
+        font-size: 1.1rem;
+        color: #6c757d;
+        margin-bottom: 2rem;
+        text-align: center;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* --- Form Elements and Filters --- */
+    .filter-container {
+        background-color: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: var(--shadow-elevation-2);
+        margin-bottom: 2rem;
+        transition: all var(--transition-speed) ease;
+    }
+
+    .filter-container:hover {
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-control,
+    .form-select {
+        background-color: var(--light-gray);
+        border: 1px solid var(--subtle-gray);
+        border-radius: 8px;
+        height: 40px;
+        font-size: 0.9rem;
+        transition: all var(--transition-speed) ease;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        background-color: white;
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 0.25rem rgba(0, 77, 158, 0.25);
+    }
+
+    .filter-label {
+        font-size: 0.75rem;
+        color: var(--dark-gray);
+        font-weight: 600;
+        margin-bottom: 0.3rem;
+        display: block;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* --- Legend/Key Styling (Updated for Centering) --- */
+    .status-legend-wrapper {
+        display: flex;
+        /* Make the wrapper a flex container */
+        justify-content: center;
+        /* Center the content horizontally */
+    }
+
+    .status-legend {
+        border-top: 1px solid var(--subtle-gray);
+        padding-top: 0.75rem;
+        margin-top: 1rem;
+        display: flex;
+        gap: 1.5rem;
+        font-size: 0.85rem;
+        color: var(--dark-gray);
+    }
+
+    .status-legend-item i {
+        font-size: 0.9rem;
+        margin-right: 4px;
+    }
+
+    .status-legend-active {
+        color: var(--primary-blue);
+        font-weight: 600;
+    }
+
+    .status-legend-inactive {
+        color: var(--danger-red);
+        font-weight: 600;
+    }
+
+    .status-legend-removed {
+        color: var(--removed-black);
+        font-weight: 600;
+    }
+
+
+    /* --- Buttons --- */
+    .btn {
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+    .action-button-size {
+        padding: 0.375rem 1rem;
+    }
+
+    .btn-primary {
+        background-color: var(--primary-blue);
+        border-color: var(--primary-blue);
+    }
+
+    .btn-primary:hover {
+        background-color: var(--light-blue);
+        border-color: var(--light-blue);
+        transform: translateY(-1px);
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ... other button styles (kept for completeness) ... */
+    .btn-outline-secondary {
+        border-color: var(--primary-blue);
+        color: var(--primary-blue);
+    }
+
+    .btn-outline-secondary:hover {
+        background-color: var(--primary-blue);
+        color: white;
+        transform: scale(1.03);
+    }
+
+    .btn-view {
+        background-color: #3498db;
+    }
+
+    .btn-edit {
+        background-color: var(--success-green);
+    }
+
+    .btn-delete {
+        background-color: var(--danger-red);
+    }
+
+    .btn-view:hover,
+    .btn-edit:hover,
+    .btn-delete:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    }
+
+    /* --- Table Styling --- */
+    /* ... (Table Container and Header styles are unchanged) ... */
+    .fancy-table-container {
+        border-radius: 12px;
+        box-shadow: var(--shadow-elevation-2);
+        background-color: white;
+        animation: fadeIn var(--transition-speed) ease-out;
+        overflow-x: auto;
+        /* Enables horizontal scrolling for the table */
+    }
+
+    .fancy-table {
+        /* Adjusted min-width to accommodate all columns (1470px + ~100px for Type) */
+        min-width: 1570px; /* INCREASED MIN-WIDTH */
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        color: var(--dark-gray);
+    }
+
+    /* ... (Table Header styles are unchanged) ... */
+    .fancy-table thead {
+        background-color: var(--podium-blue);
+        color: white;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 0.85rem;
+        font-weight: 700;
+    }
+
+    .fancy-table th {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background-color: var(--podium-blue);
+        padding: 1rem 1rem;
+        /* Slightly reduced horizontal padding on headers */
+        text-align: left;
+    }
+
+    .fancy-table th:first-child {
+        border-top-left-radius: 12px;
+    }
+
+    .fancy-table th:last-child {
+        border-top-right-radius: 12px;
+    }
+
+    .fancy-table td {
+        padding: 0.75rem 1rem;
+        /* Reduced horizontal padding on cells */
+        text-align: left;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 0.9rem;
+        vertical-align: middle;
+        word-break: break-word;
+        /* Ensure long words break */
+    }
+
+    .fancy-table tbody tr {
+        transition: background-color 0.2s ease, transform 0.1s ease;
+    }
+
+    .fancy-table tbody tr:hover {
+        background-color: #f5f5f5;
+        transform: scale(1.005);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        cursor: pointer;
+    }
+
+    /* Media/Image Styling */
+    .event-media-img {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 6px;
+        /* Default border for Active (blue) */
+        border: 2px solid var(--primary-blue);
+        transition: transform 0.3s ease, border-color 0.3s ease;
+    }
+
+    .event-media-img:hover {
+        transform: scale(1.1);
+    }
+
+    /* Hashtag Badge Styling */
+    /* ... (Hashtag styling is unchanged, but its logic in the loop is removed) ... */
+    .badge-hashtag {
+        background-color: var(--light-gray);
+        color: var(--primary-blue);
+        padding: 0.4em 0.7em;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        display: inline-block;
+        margin-right: 4px;
+        margin-top: 2px;
+        white-space: nowrap;
+        word-break: normal;
+    }
+
+    /* Action Buttons */
+    /* ... (Action button styling is unchanged) ... */
+    .action-buttons {
+        display: flex;
+        gap: 0.4rem;
+        min-width: 120px;
+        white-space: nowrap;
+    }
+
+    .action-buttons .btn {
+        padding: 0.5rem 0.6rem;
+    }
+
+    /* --- Event Status Styling (Unchanged) --- */
+
+    /* INACTIVE / OVER (Past End Date, but less than 30 days) */
+    .row-inactive,
+    .row-inactive .badge-hashtag {
+        color: var(--danger-red) !important;
+        /* Red Text */
+        border-color: var(--danger-red) !important;
+    }
+
+    .row-inactive .event-media-img {
+        border-color: var(--danger-red) !important;
+        /* Red Image Border */
+        filter: saturate(0.8);
+    }
+
+    /* REMOVED / PURGED (Past 30 days) */
+    .row-removed {
+        color: var(--removed-black) !important;
+        /* Black Text */
+        text-decoration: line-through;
+        /* Strikethrough on all text */
+        opacity: 0.7;
+    }
+
+    .row-removed .text-truncate-title,
+    .row-removed .text-truncate-description {
+        color: var(--removed-black) !important;
+        /* Ensure specific elements respect black color */
+    }
+
+    .row-removed .event-media-img {
+        border-color: var(--removed-black) !important;
+        /* Black Image Border */
+        filter: grayscale(100%);
+    }
+
+    .row-removed .badge-hashtag {
+        color: var(--removed-black) !important;
+        border-color: var(--removed-black) !important;
+    }
+
+    /* Ensure link/button colors are overridden by the primary rule */
+    .row-inactive a,
+    .row-inactive button {
+        color: var(--danger-red) !important;
+    }
+
+    .row-removed a,
+    .row-removed button {
+        color: var(--removed-black) !important;
+    }
+
+    /* --- Utility Classes for Table Content (Unchanged) --- */
+
+    .media-column {
+        min-width: 80px;
+        max-width: 80px;
+    }
+
+    .title-column {
+        min-width: 150px;
+        max-width: 150px;
+    }
+
+    .description-column {
+        min-width: 470px;
+        max-width: 470px;
+    }
+
+    .location-column {
+        min-width: 100px;
+        max-width: 150px;
+    }
+
+    .category-column {
+        min-width: 120px;
+        max-width: 150px;
+    }
+    
+    /* NEW TYPE COLUMN CLASS */
+    .type-column {
+        min-width: 100px;
+        max-width: 100px;
+    }
+
+    .hashtags-column {
+        min-width: 160px;
+        max-width: 160px;
+    }
+
+    .date-column {
+        min-width: 100px;
+        max-width: 100px;
+        text-align: center;
+    }
+
+    /* ... (Truncation and Animation styles are unchanged) ... */
+    .text-truncate-title {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-weight: 600;
+        /* Default blue text color for active */
+        color: var(--primary-blue);
+    }
+
+    .text-truncate-description {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        line-height: 1.4;
+        max-height: 4.2em;
+    }
+
+    @@media (max-width: 1570px) { /* UPDATED BREAKPOINT */
+
+        /* Adjusted breakpoint for new min-width */
+        .fancy-table-container {
+            overflow-x: scroll;
+        }
+    }
+
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.4);
+        }
+
+        70% {
+            box-shadow: 0 0 0 10px rgba(39, 174, 96, 0);
+        }
+
+        100% {
+            box-shadow: 0 0 0 0 rgba(39, 174, 96, 0);
+        }
+    }
+
+    /* Success Message Animation */
+    .alert-success {
+        animation: fadeIn 0.5s ease-out, pulse 2s ease-out 0.5s 1;
+        border-left: 5px solid var(--success-green);
+        border-radius: 8px;
+        background-color: #e8f8f3;
+        color: #1a7f50;
+    }
+</style>
+
+<div class="row justify-content-center blog-container">
+    <div class="col-lg-10 mx-auto"> @* Reverted to col-lg-10 as requested *@
+
+        <div class="d-flex justify-content-end mb-4">
+            <a class="btn btn-primary action-button-size" asp-action="Create">
+                <i class="bi bi-plus-circle-fill me-1"></i> New Event
+            </a>
+        </div>
+
+        <div class="text-center mb-5">
+            <h1 class="form-header">Manage Events/Announcments</h1>
+            <p class="form-subtitle">Administrator dashboard for event/announcements management, featuring full CRUD and dynamic
+                filtering options.</p>
+        </div>
+
+
+        @if (!string.IsNullOrWhiteSpace(message))
+        {
+            <div class="alert alert-success mt-3" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i> @message
+            </div>
+        }
+
+        <div class="filter-container mb-4">
+            <form method="get" class="row g-3 align-items-end">
+
+                @* ROW 1: Search Bar (Takes full width - col-12) *@
+                <div class="col-12">
+                    <label for="searchQuery" class="filter-label">Title, Content, Location, Category Search</label>
+                    <input type="text" id="searchQuery" name="searchQuery" value="@searchQuery"
+                        placeholder="Search title, description, location, category..."
+                        class="form-control form-control-lg" />
+                </div>
+
+                @* --- Divider for visual separation --- *@
+                <div class="col-12">
+                    <hr class="my-1 text-muted" />
+                </div>
+
+
+                @* ROW 2: Location, Category, Sort By (Each takes up 1/3 of the width - col-md-4) *@
+                <div class="col-md-4 col-sm-6">
+                    <label for="location-select" class="filter-label">Location</label>
+                    <select id="location-select" name="location" class="form-select">
+                        <option value="">All Locations</option>
+                        @foreach (var loc in locations)
+                        {
+                            <option value="@loc"
+                                selected="@(string.Equals(loc, selectedLocation, StringComparison.OrdinalIgnoreCase) ? "selected" : null)">
+                                @loc</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-4 col-sm-6">
+                    <label for="category-select" class="filter-label">Category</label>
+                    <select id="category-select" name="category" class="form-select">
+                        <option value="">All Categories</option>
+                        @foreach (var c in categories)
+                        {
+                            <option value="@c"
+                                selected="@(string.Equals(c, selectedCategory, StringComparison.OrdinalIgnoreCase) ? "selected" : null)">
+                                @c</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-4 col-sm-12">
+                    <label for="sortOrder" class="filter-label">Sort By</label>
+                    <select id="sortOrder" name="sortOrder" class="form-select">
+                        <option value="" selected="@(string.IsNullOrWhiteSpace(sortOrder))">Default (Start ↑)</option>
+                        <option value="start_asc" selected="@(sortOrder == "start_asc")">Start Date Asc</option>
+                        <option value="start_desc" selected="@(sortOrder == "start_desc")">Start Date Desc</option>
+                        <option value="end_asc" selected="@(sortOrder == "end_asc")">End Date Asc</option>
+                        <option value="end_desc" selected="@(sortOrder == "end_desc")">End Date Desc</option>
+                        <option value="created_asc" selected="@(sortOrder == "created_asc")">Created Date Asc</option>
+                        <option value="created_desc" selected="@(sortOrder == "created_desc")">Created Date Desc
+                        </option>
+                    </select>
+                </div>
+
+
+                @* ROW 3: Date Ranges (Each takes up 1/3 of the width - col-md-4) *@
+                <div class="col-md-4 col-sm-12">
+                    <label for="fromDate" class="filter-label">Start Date Range</label>
+                    <div class="input-group">
+                        <input type="date" id="fromDate" name="fromDate" value="@fromDate" class="form-control"
+                            title="Start From" />
+                        <input type="date" id="toDate" name="toDate" value="@toDate" class="form-control"
+                            title="Start To" />
+                    </div>
+                </div>
+
+                <div class="col-md-4 col-sm-6">
+                    <label for="endFrom" class="filter-label">End Date Range</label>
+                    <div class="input-group">
+                        <input type="date" id="endFrom" name="endFrom" value="@endFrom" class="form-control"
+                            title="End From" />
+                        <input type="date" id="endTo" name="endTo" value="@endTo" class="form-control" title="End To" />
+                    </div>
+                </div>
+
+                <div class="col-md-4 col-sm-6">
+                    <label for="createdFrom" class="filter-label">Created Date Range</label>
+                    <div class="input-group">
+                        <input type="date" id="createdFrom" name="createdFrom" value="@createdFrom" class="form-control"
+                            title="Created From" />
+                        <input type="date" id="createdTo" name="createdTo" value="@createdTo" class="form-control"
+                            title="Created To" />
+                    </div>
+                </div>
+
+                @* LEGEND / KEY (New centering logic applied here) *@
+                <div class="col-12">
+                    <div class="status-legend-wrapper">
+                        <div class="status-legend">
+                            <span class="status-legend-item"><i class="bi bi-square-fill"
+                                    style="color: var(--primary-blue);"></i> Active Event/Announcement</span>
+                            <span class="status-legend-item status-legend-inactive"><i class="bi bi-square-fill"></i>
+                                Inactive Event/Announcement (Over)</span>
+                            <span class="status-legend-item status-legend-removed"><i class="bi bi-square-fill"></i>
+                                Removed/Purged Event/Announcement (30+ Days)</span>
+                        </div>
+                    </div>
+                </div>
+
+
+                @* ROW 4: Action Buttons (Equal size, take up full width - col-12) *@
+                <div class="col-12 mt-3"> @* Increased top margin for separation *@
+                    <div class="row g-2"> @* Use an inner row for the two equal buttons *@
+                        <div class="col-6">
+                            <button type="submit" class="btn btn-primary action-button-size w-100">
+                                <i class="bi bi-funnel-fill me-1"></i> Apply Filters
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <a class="btn btn-outline-secondary action-button-size w-100" asp-action="AdminIndex">
+                                <i class="bi bi-x-circle-fill"></i> Clear
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                @* The hidden hashtags input is no longer necessary since it's removed from the UI and filter logic *@
+                @* If you still need to pass it as an empty value (e.g., if it's a required filter but you want to ignore it), keep this: *@
+                <input type="hidden" name="hashtags" value="@hashtags" />
+
+            </form>
+        </div>
+
+
+        @if (Model == null || !Model.Any())
+        {
+            <div class="alert alert-info text-center py-4 rounded-3 shadow-sm">
+                <i class="bi bi-info-circle-fill me-2"></i> No events match the current filter criteria.
+            </div>
+        }
+        else
+        {
+            <div class="fancy-table-container">
+                <table class="fancy-table">
+                    <thead>
+                        <tr>
+                            <th class="media-column">Media</th>
+                            <th class="title-column">Title</th>
+                            <th class="description-column">Description</th>
+                            <th class="location-column">Location</th>
+                            <th class="category-column">Category</th>
+                            <th class="type-column">Type</th> @* ADDED TYPE HEADER *@@* ADDED TYPE HEADER *@
+                            <th class="hashtags-column">Hashtags</th>
+                            <th class="date-column">Start</th>
+                            <th class="date-column">End</th>
+                            <th class="date-column">Created</th>
+                            <th style="min-width: 120px; max-width: 120px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in Model)
+                        {
+                            // C# Logic to determine Status and apply CSS class
+                            var eventEndTime = p.EndDate.HasValue ? p.EndDate.Value.ToLocalTime() : p.StartDate.ToLocalTime();
+                            var now = DateTime.Now;
+                            var thirtyDaysAfterEnd = eventEndTime.AddDays(30);
+
+                            string rowClass = "row-active"; // Default: Active/Upcoming
+
+                            if (now > thirtyDaysAfterEnd)
+                            {
+                                rowClass = "row-removed";
+                            }
+                            else if (now > eventEndTime)
+                            {
+                                rowClass = "row-inactive";
+                            }
+
+
+                            <tr class="table-row-animate @rowClass">
+                                <td class="media-column">
+                                    @if (!string.IsNullOrEmpty(p.MediaPath))
+                                    {
+                                        <img src="@p.MediaPath" alt="Event Media" class="event-media-img" />
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted"><i class="bi bi-image-fill"></i></span>
+                                    }
+                                </td>
+                                <td class="title-column text-truncate-title" title="@p.Title">
+                                    @p.Title
+                                </td>
+                                <td class="description-column text-truncate-description" title="@p.Description">
+                                    @(string.IsNullOrWhiteSpace(p.Description) ? "—" : p.Description)
+                                </td>
+                                <td class="location-column">@(string.IsNullOrWhiteSpace(p.Location) ? "—" : p.Location)</td>
+                                <td class="category-column">
+                                    <span class="badge rounded-pill bg-info text-dark">@(string.IsNullOrWhiteSpace(p.Category) ?
+                                            "N/A" : p.Category)</span>
+                                </td>
+                                @* ADDED TYPE DATA CELL *@
+                                <td class="type-column">
+                                    @{
+                                        string typeBadgeClass = p.Type == "Event" ? "bg-primary text-white" : "bg-warning text-dark";
+                                    }
+                                    <span class="badge rounded-pill @typeBadgeClass">
+                                        @p.Type
+                                    </span>
+                                </td>
+                                @* END TYPE DATA CELL *@
+                                <td class="hashtags-column">
+                                    @if (p.Hashtags?.Any() == true)
+                                    {
+                                        @foreach (var h in p.Hashtags.Take(2))
+                                        {
+                                            <span class="badge-hashtag" title="#@h">@h</span>
+                                        }
+                                        @if (p.Hashtags.Count > 2)
+                                        {
+                                            <span class="badge-hashtag" title="@(string.Join(", ", p.Hashtags))">...</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span>—</span>
+                                    }
+                                </td>
+                                <td class="date-column">
+                                    @p.StartDate.ToLocalTime().ToString("yyyy-MM-dd")<br />
+                                    @p.StartDate.ToLocalTime().ToString("HH:mm")
+                                </td>
+                                <td class="date-column">
+                                    @(p.EndDate.HasValue? p.EndDate.Value.ToLocalTime().ToString("yyyy-MM-dd") : "—")<br />
+                                    @(p.EndDate.HasValue? p.EndDate.Value.ToLocalTime().ToString("HH:mm") : "")
+                                </td>
+                                <td class="date-column">
+                                    @p.Timestamp.ToLocalTime().ToString("yyyy-MM-dd")<br />
+                                    @p.Timestamp.ToLocalTime().ToString("HH:mm")
+                                </td>
+                                <td class="action-buttons">
+                                    <a class="btn action-button-size btn-view" asp-action="AdminDetails" asp-route-id="@p.Id"
+                                        title="View Details">
+                                        <i class="bi bi-eye-fill"></i>
+                                    </a>
+                                    <a class="btn action-button-size btn-edit" asp-action="Edit" asp-route-id="@p.Id"
+                                        title="Edit Event">
+                                        <i class="bi bi-pencil-fill"></i>
+                                    </a>
+                                    <button type="button" class="btn action-button-size btn-delete"
+                                        onclick="showDeleteModal('@p.Id')" title="Delete Event">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+@* Add Bootstrap Icons to the layout for the new icons (assuming you have them linked) *@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+
+    @* Anti-Forgery Token for JavaScript *@
+    <form id="anti-forgery-form" style="display:none">
+        @Html.AntiForgeryToken()
+    </form>
+
+    <script>
+        // Use a more robust check for Bootstrap's JS
+        if (typeof bootstrap === 'undefined') {
+            console.error('Bootstrap JavaScript is not loaded. The modal will not work.');
+        }
+
+        function showDeleteModal(eventId) {
+            const antiForgeryToken = document.querySelector('#anti-forgery-form input[name="__RequestVerificationToken"]').value;
+
+            const modalHtml = `
+                                            <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered">
+                                                    <div class="modal-content" style="border-radius: 12px; border-left: 5px solid var(--danger-red);">
+                                                        <div class="modal-header bg-danger text-white" style="border-top-left-radius: 8px; border-top-right-radius: 8px;">
+                                                            <h5 class="modal-title" id="deleteModalLabel"><i class="bi bi-exclamation-triangle-fill me-2"></i> Confirm Deletion</h5>
+                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <p class="text-danger fw-bold">Warning:</p>
+                                                            Are you absolutely sure you want to delete this event/announcement? This action cannot be undone.
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-outline-secondary action-button-size" data-bs-dismiss="modal">Cancel</button>
+                                                            <form action="/Event/Delete" method="post" class="d-inline">
+                                                                <input type="hidden" name="id" value="${eventId}" />
+                                                                <input type="hidden" name="__RequestVerificationToken" value="${antiForgeryToken}" />
+                                                                <button type="submit" class="btn btn-danger action-button-size"><i class="bi bi-trash-fill me-1"></i> Delete Permanently</button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>`;
+
+            // Clean up old modal and inject new one
+            const existingModal = document.getElementById('deleteModal');
+            if (existingModal) existingModal.remove();
+
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+            // Use Bootstrap's native JS to show the modal
+            const modalElement = document.getElementById('deleteModal');
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+
+            // Clean up the modal element after it's hidden
+            modalElement.addEventListener('hidden.bs.modal', function () {
+                this.remove();
+            });
+        }
+    </script>
+}

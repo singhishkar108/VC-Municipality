@@ -1,0 +1,456 @@
+@model MunicipalityApp.Models.Event
+@using System.Globalization
+
+@{
+    ViewData["Title"] = "View Event";
+
+    var role = Context.Session.GetString("Role");
+    var isAdmin = role == "Admin";
+    
+    // Determine the action based on the user's role
+    var backAction = isAdmin ? "AdminIndex" : "Index";
+}
+
+<style>
+    /* --- CSS Variables (Consistent with Create/Edit/Admin Index) --- */
+    :root {
+        --primary-blue: #004d9e;
+        /* Main Brand Color */
+        --light-blue: #007ac3;
+        /* Hover Color */
+        --dark-gray: #2c3e50;
+        /* Primary Text */
+        --light-gray: #ecf0f1;
+        /* Background & Input */
+        --subtle-gray: #bdc3c7;
+        /* Subtle Borders/Text */
+        --podium-blue: #0A2342;
+        /* Header Color */
+        --danger-red: #e74c3c;
+        --shadow-elevation-2: 0 4px 12px rgba(0, 0, 0, 0.08);
+        --transition-speed: 0.3s;
+    }
+
+    body {
+        background-color: #f7f9fc;
+        /* Light, clean background */
+    }
+
+    .event-container {
+        padding: 2rem 0;
+        /* Apply a slight animation to the container */
+        animation: fadeIn var(--transition-speed) ease-out;
+    }
+
+    /* --- Form Header Styling --- */
+    .form-header {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--podium-blue);
+        /* Updated color for consistency */
+        margin-bottom: 0.5rem;
+        text-align: center;
+    }
+
+    .form-subtitle {
+        font-size: 1.1rem;
+        color: #6c757d;
+        /* Updated color for consistency */
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    /* --- Event Card Styling (Social Media Look) --- */
+    .event-card {
+        background: white;
+        border: 1px solid var(--light-gray);
+        /* Lighter border */
+        border-radius: 12px;
+        /* Smoother corners */
+        max-width: 800px;
+        margin: 0 auto 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        /* Deeper, softer shadow */
+        transition: box-shadow var(--transition-speed) ease;
+    }
+
+    .event-card:hover {
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+        /* Subtle lift on hover */
+    }
+
+    .event-header {
+        display: flex;
+        align-items: center;
+        padding: 1rem 1.25rem;
+        /* Increased padding */
+    }
+
+    .profile-pic {
+        width: 40px;
+        /* Slightly larger image */
+        height: 40px;
+        border-radius: 50%;
+        margin-right: 12px;
+        border: 1px solid var(--subtle-gray);
+    }
+
+    .event-title {
+        font-weight: 700;
+        color: var(--dark-gray);
+        font-size: 1rem;
+    }
+
+    .location-timestamp {
+        font-size: 0.85rem;
+        color: var(--text-color);
+    }
+
+    .event-media {
+        width: 100%;
+        max-height: 600px;
+        object-fit: contain;
+        /* Prevent gaps if image is inside rounded card */
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+    }
+
+    /* Detail block for category and dates */
+    .event-details-block {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--light-gray);
+        font-size: 0.95rem;
+        color: var(--dark-gray);
+    }
+
+    .event-details-block strong {
+        font-weight: 600;
+        color: var(--podium-blue);
+    }
+
+    .event-description {
+        padding: 1rem 1.25rem;
+        font-size: 1rem;
+        color: var(--dark-gray);
+    }
+
+    .event-description p {
+        margin-bottom: 0;
+    }
+
+    .event-hashtags {
+        padding: 0 1.25rem 1rem;
+        color: var(--light-blue);
+        font-size: 0.9rem;
+    }
+
+    .event-hashtags span {
+        font-weight: 600;
+        margin-right: 8px;
+        transition: color 0.2s ease;
+    }
+
+    .event-hashtags span:hover {
+        color: var(--primary-blue);
+    }
+
+    /* Footer for Actions */
+    .event-actions-footer {
+        display: flex;
+        padding: 1rem 1.25rem;
+        align-items: center;
+        gap: 10px;
+        border-top: 1px solid var(--light-gray);
+    }
+
+    /* --- Buttons --- */
+    .btn {
+        border-radius: 8px;
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+        transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+        background-color: var(--primary-blue);
+        border-color: var(--primary-blue);
+    }
+
+    .btn-primary:hover {
+        background-color: var(--light-blue);
+        border-color: var(--light-blue);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-outline-secondary {
+        border-color: var(--subtle-gray);
+        /* Lighter border */
+        color: var(--dark-gray);
+    }
+
+    .btn-outline-secondary:hover {
+        background-color: var(--subtle-gray);
+        color: var(--dark-gray);
+        border-color: var(--subtle-gray);
+    }
+
+    .btn-danger {
+        background-color: var(--danger-red);
+        border-color: var(--danger-red);
+        transition: all 0.2s ease;
+    }
+
+    .btn-danger:hover {
+        background-color: #c0392b;
+        border-color: #c0392b;
+    }
+    
+    .action-button-size {
+        padding: 0.5rem 1rem;
+    }
+
+    /* --- Utility & Animation --- */
+    .alert-secondary {
+        background-color: var(--light-gray) !important;
+        color: var(--subtle-gray) !important;
+        border: 1px solid var(--subtle-gray) !important;
+    }
+
+    .bi {
+        vertical-align: -0.125em;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(15px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Share Modal Styling - Ensure consistent button sizing */
+    .modal-dialog.modal-share .btn-copy {
+        padding: 0.5rem 1rem;
+        font-weight: 600;
+    }
+</style>
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+
+<div class="row justify-content-center event-container">
+    <div class="col-lg-9 mx-auto">
+        
+        <div class="d-flex justify-content-end mb-3">
+            <a class="btn btn-primary" asp-action="@backAction">
+                <i class="bi bi-arrow-left-circle-fill me-1"></i> Back to Events
+            </a>
+        </div>
+
+        <div class="text-center mb-5">
+            <h1 class="form-header"><i class="bi bi-calendar-check me-2"></i> View Event/Announcement Details</h1>
+            <p class="form-subtitle">Full details for this event, including administrative options.</p>
+        </div>
+
+        <div class="event-card">
+            <div class="event-header">
+                <img class="profile-pic" src="~/images/VCLogoFeed.png" alt="Profile" />
+                <div class="event-meta">
+                    <span class="event-title">VC Municipality</span>
+                    <span class="location-timestamp">
+                        <i class="bi bi-geo-alt-fill me-1"></i> @(string.IsNullOrWhiteSpace(Model.Location) ? "Unspecified Location" : Model.Location)
+                    </span>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.MediaPath))
+            {
+                var isVideo = new[] { ".mp4", ".avi", ".mov", ".mkv" }.Any(ext => Model.MediaPath.EndsWith(ext, StringComparison.OrdinalIgnoreCase));
+
+                if (isVideo)
+                {
+                    <video src="@Model.MediaPath" class="event-media" controls poster="~/images/VCLogoFeed.png" style="background-color: black;"></video>
+                }
+                else
+                {
+                    <img src="@Model.MediaPath" class="event-media" alt="Event media" />
+                }
+            }
+            else
+            {
+                <div class="alert alert-secondary text-center rounded-0" style="padding: 100px 0;">
+                    <i class="bi bi-card-image d-block mb-2" style="font-size: 2rem;"></i>
+                    No media available
+                </div>
+            }
+
+            <div class="event-details-block">
+                <strong><i class="bi bi-tag-fill me-1"></i> Category:</strong> @(string.IsNullOrWhiteSpace(Model.Category) ? "—" : Model.Category) <br />
+                <strong><i class="bi bi-bookmark-fill me-1"></i> Type:</strong> @(string.IsNullOrWhiteSpace(Model.Type) ? "—" : Model.Type) <br />
+                <strong><i class="bi bi-clock-fill me-1"></i> Start Date:</strong> @Model.StartDate.ToLocalTime().ToString("d MMMM yyyy HH:mm", new CultureInfo("en-US")) <br />
+                @if (Model.EndDate.HasValue)
+                {
+                    <strong><i class="bi bi-clock-history me-1"></i> End Date:</strong> @Model.EndDate.Value.ToLocalTime().ToString("d MMMM yyyy HH:mm", new CultureInfo("en-US")) <br />
+                }
+            </div>
+
+            <div class="event-description">
+                <p><strong>Description:</strong> @Model.Description</p>
+            </div>
+
+@if (Model.Hashtags?.Any() == true)
+{
+    <div class="event-hashtags">
+        @foreach (var h in Model.Hashtags)
+        {
+            <a asp-action="Hashtags" asp-route-hashtag="@h" class="text-decoration-none">@h</a>
+        }
+    </div>
+}
+
+
+            <div class="event-actions-footer">
+                @* Only show Edit/Delete for admins *@
+                @if (isAdmin)
+                {
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-secondary action-button-size">
+                        <i class="bi bi-pencil-square me-1"></i> Edit
+                    </a>
+
+                    @* MODIFIED: Replaced form submission with button to trigger the JavaScript modal *@
+                    <button type="button" class="btn btn-danger action-button-size" onclick="showDeleteModal('@Model.Id')">
+                        <i class="bi bi-trash-fill me-1"></i> Delete
+                    </button>
+                }
+
+                @* Share button for everyone *@
+                <button class="btn btn-outline-secondary action-button-size ms-auto" onclick="shareEvent('@Model.ShareUrl')">
+                    <i class="bi bi-share-fill me-1"></i> Share
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @* Anti-Forgery Token for the JavaScript-triggered Delete Form *@
+    <form id="anti-forgery-form" style="display:none">
+        @Html.AntiForgeryToken()
+    </form>
+    
+    <script>
+        // Use a more robust check for Bootstrap's JS
+        if (typeof bootstrap === 'undefined') {
+            console.error('Bootstrap JavaScript is not loaded. The modal will not work.');
+        }
+
+        /**
+         * Shows the Bootstrap Modal for deleting an event.
+         */
+        function showDeleteModal(eventId) {
+            // Retrieve the Anti-Forgery Token from the hidden form
+            const antiForgeryToken = document.querySelector('#anti-forgery-form input[name="__RequestVerificationToken"]').value;
+
+            const modalHtml = `
+                <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content" style="border-radius: 12px; border-left: 5px solid var(--danger-red);">
+                            <div class="modal-header bg-danger text-white" style="background-color: var(--danger-red) !important; border-top-left-radius: 8px; border-top-right-radius: 8px;">
+                                <h5 class="modal-title" id="deleteModalLabel"><i class="bi bi-exclamation-triangle-fill me-2"></i> Confirm Deletion</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p class="text-danger fw-bold">Warning:</p>
+                                Are you absolutely sure you want to delete this event? This action cannot be undone.
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-secondary action-button-size" data-bs-dismiss="modal">Cancel</button>
+                                <form action="@Url.Action("Delete", "Event")" method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="${eventId}" />
+                                    <input type="hidden" name="__RequestVerificationToken" value="${antiForgeryToken}" />
+                                    <button type="submit" class="btn btn-danger action-button-size"><i class="bi bi-trash-fill me-1"></i> Delete Permanently</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+
+            // Clean up old modal and inject new one
+            const existingModal = document.getElementById('deleteModal');
+            if (existingModal) existingModal.remove();
+
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+            // Use Bootstrap's native JS to show the modal
+            const modalElement = document.getElementById('deleteModal');
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+
+            // Clean up the modal element after it's hidden
+            modalElement.addEventListener('hidden.bs.modal', function () {
+                this.remove();
+            });
+        }
+        
+        // Existing Share Modal Function
+        function shareEvent(url) {
+            const currentUrl = url || window.location.href; // Use Model.ShareUrl or fallback to current URL
+            const modalHtml = `
+                <div class="modal fade" id="shareModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-share">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title"><i class="bi bi-share-fill me-2"></i> Share this event</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <label for="shareLink" class="form-label">Event Link</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="shareLink" value="${currentUrl}" readonly />
+                                    <button class="btn btn-primary btn-copy" type="button" onclick="copyLink()">
+                                        <i class="bi bi-clipboard"></i> Copy
+                                    </button>
+                                </div>
+                                <div id="copySuccess" class="text-success small-help mt-2" style="display:none;">
+                                    Link copied to clipboard!
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+
+            const existingModal = document.getElementById('shareModal');
+            if (existingModal) existingModal.remove();
+
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            const modal = new bootstrap.Modal(document.getElementById('shareModal'));
+            modal.show();
+
+            document.getElementById('shareModal').addEventListener('hidden.bs.modal', function () {
+                this.remove();
+            });
+        }
+
+        function copyLink() {
+            const linkInput = document.getElementById('shareLink');
+            linkInput.select();
+            linkInput.setSelectionRange(0, 99999); /* For mobile devices */
+
+            navigator.clipboard.writeText(linkInput.value).then(() => {
+                const successMsg = document.getElementById('copySuccess');
+                successMsg.style.display = 'block';
+                setTimeout(() => { successMsg.style.display = 'none'; }, 2000);
+            }).catch(err => {
+                // Fallback for older browsers
+                document.execCommand('copy');
+                alert('Link copied successfully (fallback)');
+            });
+        }
+    </script>
+}

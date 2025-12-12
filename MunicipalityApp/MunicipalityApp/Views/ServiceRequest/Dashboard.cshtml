@@ -1,0 +1,578 @@
+@model IEnumerable<MunicipalityApp.Models.ServiceRequest>
+@{
+    ViewData["Title"] = "Service Request Dashboard";
+    var serviceTypes = ViewBag.ServiceTypes as string[] ?? Array.Empty<string>();
+    var departments = ViewBag.Departments as string[] ?? Array.Empty<string>();
+    var statuses = ViewBag.Statuses as string[] ?? Array.Empty<string>();
+    var priorities = ViewBag.Priorities as int[] ?? Array.Empty<int>();
+    var pendingCount = ViewBag.PendingCount as int? ?? 0;
+
+    var role = Context.Session.GetString("Role");
+    var isAdmin = role == "Admin";
+
+    // Determine the action based on the user's role
+    var backAction = isAdmin ? "AdminIndex" : "Index";
+}
+
+<style>
+    /* --- CSS Variables from Events Index --- */
+    :root {
+        --primary-blue: #004d9e;
+        --light-blue: #007ac3;
+        --dark-gray: #2c3e50;
+        --subtle-gray: #bdc3c7;
+        --podium-blue: #0A2342;
+        --shadow-elevation-2: 0 6px 18px rgba(15, 23, 42, .08);
+        --transition-speed: 0.3s;
+    }
+
+    /* General Layout */
+    body {
+        background-color: #f7f9fc;
+    }
+
+    .service-requests-container {
+        padding: 2rem 0;
+    }
+
+    /* --- PAGE HEADER STYLES --- */
+    .page-header-admin {
+        padding: 1.5rem 0 2rem 0;
+        text-align: center;
+    }
+
+    .page-header-admin h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--dark-gray);
+        margin-bottom: 0.5rem;
+    }
+
+    .page-header-admin p {
+        font-size: 1rem;
+        color: #777;
+        font-style: italic;
+    }
+
+    /* --- NEW: Action Button Bar Styling --- */
+    .action-bar {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .action-bar .btn {
+        padding: 0.75rem 2rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 8px;
+        transition: transform var(--transition-speed);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .action-bar .btn-request {
+        background-color: var(--light-blue);
+        border-color: var(--light-blue);
+        color: white;
+    }
+
+    .action-bar .btn-request:hover {
+        background-color: #00609d;
+        border-color: #00609d;
+        transform: translateY(-2px);
+    }
+
+    .action-bar .btn-my-requests {
+        background-color: var(--dark-gray);
+        border-color: var(--dark-gray);
+        color: white;
+    }
+
+    .action-bar .btn-my-requests:hover {
+        background-color: #1e2b38;
+        border-color: #1e2b38;
+        transform: translateY(-2px);
+    }
+
+    /* --- END NEW STYLES --- */
+
+
+    /* --- FILTER CARD STYLES --- */
+    .filter-card-admin {
+        background-color: white;
+        padding: 1.25rem 1.5rem;
+        border-radius: 8px;
+        box-shadow: var(--shadow-elevation-2);
+        margin-bottom: 3rem;
+    }
+
+    .filter-card-admin .form-label {
+        font-weight: 600;
+        color: var(--dark-gray);
+        margin-bottom: 0.4rem;
+        font-size: 0.9rem;
+        width: 100%;
+    }
+
+    .filter-card-admin .form-control,
+    .filter-card-admin .form-select {
+        border-radius: 6px;
+        padding: 0.5rem 0.75rem;
+        border-color: var(--subtle-gray);
+        font-size: 0.95rem;
+    }
+
+    /* === FILTER LAYOUT STYLES === */
+    .filter-card-admin .row-line {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        align-items: flex-end;
+    }
+
+    .filter-field {
+        flex-grow: 1;
+        min-width: 150px;
+    }
+
+    .search-input-wrapper {
+        flex-grow: 3;
+        min-width: 250px;
+    }
+
+    .action-button-row {
+        width: 100%;
+        display: flex;
+        justify-content: flex-start;
+        margin-top: 1rem;
+    }
+
+    .button-group-wrapper {
+        flex-grow: 1;
+        min-width: 100%;
+        display: flex;
+        gap: 1rem;
+    }
+
+    .button-group-wrapper .btn {
+        flex-grow: 1;
+        width: 50%;
+        font-weight: 600;
+        padding: 0.6rem 1rem;
+        font-size: 1rem;
+        height: 100%;
+    }
+
+    .filter-card-admin .btn-primary {
+        background-color: var(--primary-blue);
+        border-color: var(--primary-blue);
+        transition: background-color var(--transition-speed);
+    }
+
+    /* --- SERVICE REQUEST CARD STYLES (MODIFIED) --- */
+
+    .request-card {
+        border-radius: 12px;
+        overflow: hidden;
+        /* *** CHANGE 3: Added Blue Border *** */
+        border: 2px solid var(--primary-blue);
+        box-shadow: var(--shadow-elevation-2);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        background-color: white;
+    }
+
+    .request-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(15, 23, 42, .15);
+    }
+
+    .request-title {
+        font-weight: 700;
+        color: var(--podium-blue);
+        font-size: 1.25rem;
+        line-height: 1.4;
+        max-height: 2.8em;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    .request-meta {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+    }
+
+    .request-description {
+        font-size: 0.95rem;
+        color: var(--dark-gray);
+        line-height: 1.4;
+        max-height: 4.2em;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+    }
+
+    .priority-badge-container {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        padding: 0.5rem 0;
+        gap: 0.5rem;
+    }
+
+    .priority-indicator {
+        font-weight: 700;
+        font-size: 1rem;
+        padding: 0.1rem 0.4rem;
+        border-radius: 4px;
+        color: white;
+    }
+
+    /* Specific Priority Colors */
+    .priority-5 {
+        background-color: #dc3545;
+    }
+
+    .priority-4 {
+        background-color: #ffc107;
+        color: #343a40;
+    }
+
+    .priority-3 {
+        background-color: #0d6efd;
+    }
+
+    .priority-2 {
+        background-color: #17a2b8;
+    }
+
+    .priority-1 {
+        background-color: #28a745;
+    }
+</style>
+
+<div class="container service-requests-container">
+    <div class="row">
+
+        <div class="col-12 page-header-admin">
+            <h1>Municipal Service Request Dashboard</h1>
+            <p>A live view of all active service requests across the municipality.</p>
+        </div>
+
+        @* START: Admin-only content block *@
+        @if (isAdmin)
+        {
+            <div class="col-12 mb-4">
+                <div class="alert alert-info text-center shadow-sm" role="alert"
+                    style="background-color: #d1ecf1; border-color: #bee5eb; color: #0c5460;">
+                    <i class="bi bi-clock-fill me-2"></i> There are currently @pendingCount requests awaiting
+                    assignment.
+                    <a class="btn btn-sm btn-dark ms-3" asp-action="NextHighPriority">Assign Next High Priority Request
+                        (Min-Heap)</a>
+                </div>
+            </div>
+        }
+        @* END: Admin-only content block *@
+
+        @* --- NEW: CITIZEN ACTION BUTTONS (MODIFIED) --- *@
+        <div class="col-12 mb-4">
+            <div class="action-bar">
+                <a asp-action="Create" asp-controller="ServiceRequest" class="btn btn-request">
+                    <i class="bi bi-megaphone-fill me-2"></i> Request a Service
+                </a>
+                <a asp-action="ListUserRequests" asp-controller="ServiceRequest" class="btn btn-my-requests">
+                    <i class="bi bi-card-checklist me-2"></i> My Requests
+                </a>
+                @* 👇 NEW ADMIN BUTTON: Only visible if logged in as Admin, links to AdminIndex 👇 *@
+                @if (isAdmin)
+                {
+                    <a asp-action="AdminIndex" asp-controller="ServiceRequest" class="btn btn-dark">
+                        <i class="bi bi-person-workspace me-2"></i> Admin Dashboard
+                    </a>
+                }
+            </div>
+        </div>
+        @* --- END NEW BUTTONS --- *@
+
+
+        @* --- SEARCH & FILTER CONTAINER --- *@
+        <div class="col-12 filter-card-admin">
+            <form id="dashboardFilterForm" class="g-3">
+
+                <div class="row-line">
+                    <div class="search-input-wrapper">
+                        <label class="form-label">Search Title/Description/Location</label>
+                        <input type="text" id="dashboardSearchTerm" class="form-control"
+                            placeholder="Search by Title, Location, or Service Type..." />
+                    </div>
+                </div>
+
+                <div class="row-line">
+                    <div class="filter-field">
+                        <label class="form-label">Service Type</label>
+                        <select id="dashboardServiceTypeFilter" class="form-select">
+                            <option value="All">All Service Types</option>
+                            @foreach (var type in serviceTypes)
+                            {
+                                <option value="@type">@type</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="filter-field">
+                        <label class="form-label">Status</label>
+                        <select id="dashboardStatusFilter" class="form-select">
+                            <option value="All">All Statuses</option>
+                            @foreach (var status in statuses)
+                            {
+                                <option value="@status">@status</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="filter-field">
+                        <label class="form-label">Priority</label>
+                        <select id="dashboardPriorityFilter" class="form-select">
+                            <option value="All">All Priorities</option>
+                            @foreach (var priority in priorities.OrderByDescending(p => p))
+                            {
+                                <option value="@priority">@priority (@(priority == 5 ? "Critical" : priority == 1 ? "Low" :
+                                                                    ""))</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="filter-field">
+                        <label class="form-label">Assigned Department</label>
+                        <select id="dashboardDepartmentFilter" class="form-select">
+                            <option value="All">All Departments</option>
+                            @foreach (var dept in departments)
+                            {
+                                <option value="@dept">@dept</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row-line">
+                    <div class="filter-field">
+                        <label class="form-label">Date Requested (Start/End)</label>
+                        <div class="input-group">
+                            <input type="date" id="dateRequestedStart" class="form-control" title="From"
+                                placeholder="yyyy/mm/dd" />
+                            <input type="date" id="dateRequestedEnd" class="form-control" title="To"
+                                placeholder="yyyy/mm/dd" />
+                        </div>
+                    </div>
+                    <div class="filter-field">
+                        <label class="form-label">Completed Date (Start/End)</label>
+                        <div class="input-group">
+                            <input type="date" id="completedDateStart" class="form-control" title="From"
+                                placeholder="yyyy/mm/dd" />
+                            <input type="date" id="completedDateEnd" class="form-control" title="To"
+                                placeholder="yyyy/mm/dd" />
+                        </div>
+                    </div>
+                    <div class="filter-field">
+                        <label class="form-label">Date Requested (Sort)</label>
+                        <select id="dateRequestedSort" class="form-select">
+                            <option value="desc">Descending (Newest First)</option>
+                            <option value="asc">Ascending (Oldest First)</option>
+                            <option value="">No Sort</option>
+                        </select>
+                    </div>
+                    <div class="filter-field">
+                        <label class="form-label" style="opacity: 0;">&nbsp;</label>
+                        <select id="completedDateSort" class="form-select">
+                            <option value="">No Completed Date Sort</option>
+                            <option value="asc">Completed Date Ascending</option>
+                            <option value="desc">Completed Date Descending</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row-line action-button-row">
+                    <div class="button-group-wrapper">
+                        <button type="button" id="dashboardSearchButton" class="btn btn-primary">
+                            <i class="bi bi-funnel-fill me-1"></i> Apply Filters
+                        </button>
+                        <button type="button" id="clearDashboardFilters" class="btn btn-outline-dark">
+                            <i class="bi bi-x-circle-fill me-1"></i> Reset All Filters
+                        </button>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+
+        @* --- SERVICE REQUEST CARDS CONTAINER --- *@
+        <div class="row g-4 mt-1" id="dashboardCardsContainer">
+        </div>
+
+        <div id="noDashboardResults" class="col-12 mt-5">
+            <div class="alert alert-info text-center py-4 rounded-3 shadow-sm" style="display:none;">
+                <i class="bi bi-info-circle-fill me-2"></i> No matching service requests found.
+            </div>
+        </div>
+
+        @* --- CHANGE 1: REMOVED Archived Link --- *@
+
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+
+            // Utility function to get the correct CSS class for Priority
+            const getPriorityClass = (priority) => {
+                switch (priority) {
+                    case 5: return 'priority-5';
+                    case 4: return 'priority-4';
+                    case 3: return 'priority-3';
+                    case 2: return 'priority-2';
+                    case 1: return 'priority-1';
+                    default: return 'bg-secondary';
+                }
+            };
+
+            // Utility function to get the correct CSS class for Status
+            const getStatusColor = (status) => {
+                if (status === 'Completed') return 'success';
+                if (status === 'Cancelled') return 'danger';
+                if (status === 'Requested') return 'info';
+                if (status === 'Assigned') return 'warning text-dark';
+                return 'secondary';
+            };
+
+            // Re-usable function to load and filter data for the Dashboard
+            const loadDashboardData = () => {
+                const data = {
+                    searchTerm: $('#dashboardSearchTerm').val(),
+                    status: $('#dashboardStatusFilter').val(),
+                    priority: $('#dashboardPriorityFilter').val(),
+                    assignedDepartment: $('#dashboardDepartmentFilter').val(),
+                    serviceType: $('#dashboardServiceTypeFilter').val(),
+                    dateRequestedSort: $('#dateRequestedSort').val(),
+                    dateRequestedStart: $('#dateRequestedStart').val(),
+                    dateRequestedEnd: $('#dateRequestedEnd').val(),
+                    completedDateSort: $('#completedDateSort').val(),
+                    completedDateStart: $('#completedDateStart').val(),
+                    completedDateEnd: $('#completedDateEnd').val()
+                };
+
+                $.ajax({
+                    // *** FIX APPLIED HERE: Calling the public FilterDashboardRequests method ***
+                    url: '@Url.Action("FilterDashboardRequests", "ServiceRequest")',
+                    type: 'GET',
+                    data: data,
+                    success: function (data) {
+                        const container = $('#dashboardCardsContainer');
+                        container.empty();
+                        const noResults = $('#noDashboardResults .alert');
+
+                        if (data.length === 0) {
+                            noResults.show();
+                            return;
+                        }
+
+                        noResults.hide();
+
+                        data.forEach(req => {
+                            const priorityClass = getPriorityClass(req.priorityLevel);
+                            const statusColor = getStatusColor(req.status);
+
+                            // Date formatting for display
+                            const dateRequested = req.dateRequested ? new Date(req.dateRequested).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A';
+
+                            // --- CARD HTML RENDERING ---
+                            const card = `
+                                    <div class="col-sm-6 col-lg-4">
+                                        <div class="request-card h-100">
+                                            <a href="@Url.Action("DetailsTwo", "ServiceRequest")/${req.requestID}" class="text-decoration-none text-dark">
+                                                <div class="p-4">
+                                                    <div class="priority-badge-container">
+                                                        <span class="request-meta">Priority:</span>
+                                                        <span class="priority-indicator ${priorityClass}">
+                                                            ${req.priorityLevel}
+                                                        </span>
+                                                    </div>
+
+                                                    <h5 class="request-title mb-2" title="${req.title}">${req.title}</h5>
+
+                                                    <div class="request-meta">
+                                                        <i class="bi bi-geo-alt-fill"></i> ${req.location} 
+                                                        <span class="mx-1 text-muted">|</span>
+                                                        <span class="badge rounded-pill bg-secondary bg-opacity-10 text-dark">${req.serviceType}</span>
+                                                    </div>
+
+                                                    <p class="request-description mb-3" title="${req.description}">
+                                                        ${req.description || "No detailed description provided."}
+                                                    </p>
+                                        
+                                                    <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                                        <div>
+                                                            <div class="request-meta mb-0">Status:</div>
+                                                            <div class="fw-bold text-${statusColor}">
+                                                                <i class="bi bi-shield-fill-check me-1"></i>
+                                                                ${req.status}
+                                                            </div>
+                                                        </div>
+                                                        <div class="text-end">
+                                                            <a href="@Url.Action("DetailsTwo", "ServiceRequest")/${req.requestID}" class="btn btn-sm btn-primary">
+                                                                View Details
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between align-items-center pt-2 mt-2">
+                                                        <div class="request-meta">
+                                                            <i class="bi bi-calendar-check me-1"></i> Requested: ${dateRequested}
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+                                            </a>
+                                        </div>
+                                    </div>`;
+                            container.append(card);
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error fetching dashboard data: ' + error);
+                        // Optional: Show an error message if the AJAX call fails
+                        $('#noDashboardResults .alert').text("Error loading service requests. Please try again.").show();
+                    }
+                });
+            };
+
+            // Bind Events
+            $('#dashboardSearchButton').on('click', loadDashboardData);
+
+            // Reset filters
+            $('#clearDashboardFilters').on('click', function () {
+                // Clear all inputs/selects in the filter form
+                $('#dashboardFilterForm :input').each(function () {
+                    if (this.type === 'select-one') {
+                        $(this).val('All');
+                    } else if (this.type === 'text' || this.type === 'date') {
+                        $(this).val('');
+                    }
+                });
+                $('#dateRequestedSort').val('desc');
+                $('#completedDateSort').val('');
+
+                loadDashboardData();
+            });
+
+            // Initial load
+            loadDashboardData();
+        });
+    </script>
+}

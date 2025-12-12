@@ -1,0 +1,49 @@
+@{
+    ViewData["Title"] = "Register";
+    // This ViewData variable helps hide the white bar, same as Login.cshtml
+    ViewData["IsLoginPage"] = true;
+}
+<div class="login-content-wrapper">
+    <div class="login-background-container">
+        <video autoplay muted loop playsinline class="login-video-background">
+            <source src="~/images/Cinematic.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <div class="login-overlay"></div>
+    </div>
+    <div class="login-card-wrapper animated-wrapper">
+        <div class="login-card p-4 animated-card">
+            <div class="text-center">
+                <img src="~/images/ACBYDVector.png" alt="ACBYD Vector Logo" class="logo-on-login animated-logo" />
+                <h2 class="mb-4">Register</h2>
+            </div>
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger animated-alert" role="alert">
+                    <strong>Error:</strong> @TempData["ErrorMessage"]
+                </div>
+            }
+
+            <form method="post" class="mt-3 animated-form">
+                <div class="form-floating mb-3">
+                    <input type="text" id="username" name="username" class="form-control" placeholder="Username"
+                        required />
+                    <label for="username">Username</label>
+                </div>
+                <div class="form-floating mb-3">
+                    <input type="password" id="password" name="password" class="form-control" placeholder="Password"
+                        required />
+                    <label for="password">Password</label>
+                </div>
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-block animated-btn">Register</button>
+                </div>
+            </form>
+            <p class="text-center mt-3 animated-link">
+                Already have an account?
+                <a asp-action="Login" class="btn btn-link">Login here</a>
+            </p>
+        </div>
+    </div>
+</div>

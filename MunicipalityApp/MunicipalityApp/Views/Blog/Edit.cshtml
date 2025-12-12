@@ -1,0 +1,153 @@
+@model MunicipalityApp.Models.BlogPost
+
+@{
+    ViewData["Title"] = "Edit Blog Post";
+}
+
+<style>
+    :root {
+        --primary-blue: #004d9e;
+        --light-blue: #007ac3;
+        --dark-gray: #333;
+        --light-gray: #f2f2f2;
+        --text-color: #555;
+        --border-color: #ddd;
+        --podium-blue: #0A2342;
+    }
+
+    .blog-post-container {
+        padding: 2rem 0;
+    }
+
+    .form-card {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        padding: 2.5rem;
+        backdrop-filter: blur(5px);
+    }
+
+    .form-header {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary-blue);
+        margin-bottom: 0.5rem;
+    }
+
+    .form-subtitle {
+        font-size: 1.1rem;
+        color: var(--dark-gray);
+        margin-bottom: 2rem;
+    }
+
+    .form-group .form-control,
+    .form-group .form-select,
+    .form-group .form-control-file {
+        background-color: var(--light-gray);
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+    }
+
+    .form-group .form-control:focus,
+    .form-group .form-select:focus,
+    .form-group .form-control-file:focus {
+        background-color: white;
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 0.25rem rgba(0, 77, 158, 0.25);
+    }
+
+    .btn-submit {
+        background-color: #28a745;
+        /* Green for success */
+        border-color: #28a745;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn-submit:hover {
+        background-color: #218838;
+        border-color: #218838;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-secondary {
+        border-color: #6c757d;
+        color: #6c757d;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+        background-color: #6c757d;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+</style>
+
+<div class="row justify-content-center blog-post-container">
+    <div class="col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="form-header">Edit Blog Post</h1>
+                <p class="form-subtitle">Make changes to the selected blog post.</p>
+            </div>
+            <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+        </div>
+
+        <div class="form-card">
+            <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                <input type="hidden" asp-for="Id" />
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                <div class="mb-3 form-group">
+                    <label asp-for="Title" class="form-label"></label>
+                    <input asp-for="Title" class="form-control" required />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3 form-group">
+                    <label asp-for="Description" class="form-label"></label>
+                    <textarea asp-for="Description" class="form-control" rows="4" required></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3 form-group">
+                    <label asp-for="Location" class="form-label"></label>
+                    <input asp-for="Location" class="form-control" required />
+                    <span asp-validation-for="Location" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3 form-group">
+                    <label class="form-label">Replace Media (optional, Allowed: JPG, JPEG, PNG, GIF, MP4, AVI, MOV,
+                        MKV)</label>
+                    <input type="file" name="media" class="form-control"
+                        accept=".jpg,.jpeg,.png,.gif,.mp4,.avi,.mov,.mkv" />
+                    <span
+                        class="text-danger">@ViewData.ModelState["MediaPath"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+                    @if (!string.IsNullOrEmpty(Model.MediaPath))
+                    {
+                        <div class="mt-2">
+                            <p class="mb-1 text-muted">Current Media:</p>
+                            <img src="@Model.MediaPath" alt="Media"
+                                style="max-width:200px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />
+                        </div>
+                    }
+                </div>
+
+                <div class="mb-4 form-group">
+                    <label class="form-label">Hashtags (comma separated)</label>
+                    <input type="text" name="hashtags" value="@string.Join(",", Model.Hashtags)" class="form-control" />
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-success btn-submit">Save Changes</button>
+                    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

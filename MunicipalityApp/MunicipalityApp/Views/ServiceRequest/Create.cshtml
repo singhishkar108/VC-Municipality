@@ -1,0 +1,367 @@
+@model MunicipalityApp.ViewModels.ServiceRequestViewModel
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "Request a Service";
+    // Ensure ViewBag items are cast safely
+    var serviceTypes = ViewBag.ServiceTypes as string[] ?? Array.Empty<string>();
+    var departments = ViewBag.Departments as string[] ?? Array.Empty<string>();
+}
+
+@* --- Common Styling Block from Event/Create.cshtml --- *@
+<style>
+    /* --- CSS Variables (Matching Admin Index) --- */
+    :root {
+        --primary-blue: #004d9e;
+        /* Main Brand Color */
+        --light-blue: #007ac3;
+        /* Hover Color */
+        --dark-gray: #2c3e50;
+        /* Primary Text */
+        --light-gray: #ecf0f1;
+        /* Background & Input */
+        --subtle-gray: #bdc3c7;
+        /* Subtle Borders/Text */
+        --podium-blue: #0A2342;
+        /* Header Color */
+        --shadow-elevation-2: 0 4px 12px rgba(0, 0, 0, 0.08);
+        --transition-speed: 0.3s;
+    }
+
+    body {
+        background-color: #f7f9fc;
+        /* Light, clean background */
+    }
+
+    .blog-post-container {
+        padding: 2rem 0;
+        /* Apply a slight animation to the container */
+        animation: fadeIn var(--transition-speed) ease-out;
+    }
+
+    /* --- Form Card Styling --- */
+    .form-card {
+        background: white;
+        /* Solid white background for sharpness */
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        padding: 3rem;
+        /* Increased padding for better internal spacing */
+        transition: box-shadow var(--transition-speed) ease;
+    }
+
+    .form-card:hover {
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+        /* Subtle lift/shadow change on hover */
+    }
+
+    /* --- Typography and Header --- */
+    .form-header {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--podium-blue);
+        /* Used darker header color for consistency */
+        margin-bottom: 0.5rem;
+        text-align: center;
+    }
+
+    .form-subtitle {
+        font-size: 1.1rem;
+        color: #6c757d;
+        /* Used a darker, more contrasting gray */
+        margin-bottom: 2rem;
+        text-align: center;
+        max-width: 650px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .form-section-header {
+        font-size: 1.75rem;
+        font-weight: 600;
+        color: var(--dark-gray);
+        margin-top: 1.5rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--subtle-gray);
+    }
+
+    /* --- Form Inputs --- */
+    .form-label {
+        font-weight: 600;
+        color: var(--dark-gray);
+        margin-bottom: 0.4rem;
+    }
+
+    .form-control,
+    .form-select {
+        background-color: var(--light-gray);
+        border: 1px solid var(--subtle-gray);
+        border-radius: 8px;
+        height: 48px;
+        /* Slightly taller for better feel */
+        font-size: 1rem;
+        transition: all var(--transition-speed) ease;
+        padding: 0.75rem 1rem;
+    }
+
+    textarea.form-control {
+        height: auto;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        background-color: white;
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 0.25rem rgba(0, 77, 158, 0.25);
+    }
+
+    /* Custom style for the file input */
+    input[type="file"].form-control {
+        height: auto;
+        padding: 0.5rem 1rem;
+    }
+
+    .small-help {
+        font-size: 0.8rem;
+        color: var(--subtle-gray);
+        margin-top: 0.25rem;
+    }
+
+    /* --- Buttons --- */
+    .btn {
+        border-radius: 8px;
+        font-weight: 600;
+        padding: 0.75rem 1.5rem;
+        transition: all 0.2s ease;
+    }
+
+    .btn-submit {
+        background-color: var(--primary-blue);
+        border-color: var(--primary-blue);
+    }
+
+    .btn-submit:hover {
+        background-color: var(--light-blue);
+        border-color: var(--light-blue);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-secondary {
+        background-color: var(--subtle-gray);
+        border-color: var(--subtle-gray);
+        color: var(--dark-gray);
+    }
+
+    .btn-secondary:hover {
+        background-color: #95a5a5;
+        border-color: #95a5a5;
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    /* --- Animation Keyframes --- */
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(15px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Added icon styling */
+    .bi {
+        vertical-align: -0.125em;
+    }
+</style>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+
+<div class="row justify-content-center blog-post-container">
+    <div class="col-lg-10 col-md-11"> @* Increased column size slightly for more space *@
+
+        @* --- Alerts/Messages --- *@
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger text-center">@TempData["ErrorMessage"]</div>
+        }
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success text-center">@TempData["SuccessMessage"]</div>
+        }
+
+        @* --- Header Section --- *@
+        <div class="text-center mb-5">
+            <h1 class="form-header"><i class="bi bi-gear-fill me-2"></i> Report a Municipal Service Issue</h1>
+            <p class="form-subtitle">Use this form to report issues like potholes, burst pipes, or faulty street lights.
+                All required fields are marked with an asterisk (*).</p>
+        </div>
+
+
+        <div class="form-card">
+            <form asp-action="Create" asp-controller="ServiceRequest" method="post" enctype="multipart/form-data">
+
+                @* --- Section: Request Details --- *@
+                <h2 class="form-section-header">Request Details</h2>
+
+                <div class="mb-4 form-group">
+                    <label asp-for="Title" class="form-label">Issue Title <span class="text-danger">*</span></label>
+                    <input asp-for="Title" class="form-control" placeholder="e.g., Large Pothole on Main Street"
+                        required />
+                    <span asp-validation-for="Title" class="text-danger small-help"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-4 form-group">
+                        <label asp-for="ServiceType" class="form-label">Service Type <span
+                                class="text-danger">*</span></label>
+                        <select asp-for="ServiceType" class="form-select" asp-items="@(new SelectList(serviceTypes))"
+                            required>
+                            <option value="">-- Select Service Type --</option>
+                        </select>
+                        <span asp-validation-for="ServiceType" class="text-danger small-help"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-4 form-group">
+                        <label asp-for="AssignedDepartment" class="form-label">Department (Optional Assignment)</label>
+                        <select asp-for="AssignedDepartment" class="form-select"
+                            asp-items="@(new SelectList(departments))">
+                            <option value="">-- Select Department (Optional) --</option>
+                        </select>
+                        <span asp-validation-for="AssignedDepartment" class="text-danger small-help"></span>
+                    </div>
+                </div>
+
+                <div class="mb-4 form-group">
+                    <label asp-for="Description" class="form-label">Detailed Description <span
+                            class="text-danger">*</span></label>
+                    <textarea asp-for="Description" class="form-control" rows="5"
+                        placeholder="Provide details about the issue, potential cause, and any relevant history..."
+                        required></textarea>
+                    <span asp-validation-for="Description" class="text-danger small-help"></span>
+                </div>
+
+                @* --- Section: Location Details --- *@
+                <h2 class="form-section-header">Location Details</h2>
+
+                <div class="row">
+                    <div class="col-md-3 mb-4 form-group">
+                        <label asp-for="StreetNumber" class="form-label">Number</label>
+                        <input asp-for="StreetNumber" class="form-control" />
+                        <span asp-validation-for="StreetNumber" class="text-danger small-help"></span>
+                    </div>
+                    <div class="col-md-9 mb-4 form-group">
+                        <label asp-for="StreetAddressLine2" class="form-label">Street Name <span
+                                class="text-danger">*</span></label>
+                        <input asp-for="StreetAddressLine2" class="form-control" required />
+                        <span asp-validation-for="StreetAddressLine2" class="text-danger small-help"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-5 mb-4 form-group">
+                        <label asp-for="Suburb" class="form-label">Suburb <span class="text-danger">*</span></label>
+                        <input asp-for="Suburb" class="form-control" required />
+                        <span asp-validation-for="Suburb" class="text-danger small-help"></span>
+                    </div>
+                    <div class="col-md-4 mb-4 form-group">
+                        <label asp-for="City" class="form-label">City <span class="text-danger">*</span></label>
+                        <input asp-for="City" class="form-control" required />
+                        <span asp-validation-for="City" class="text-danger small-help"></span>
+                    </div>
+                    <div class="col-md-3 mb-4 form-group">
+                        <label asp-for="PostalCode" class="form-label">Postal Code</label>
+                        <input asp-for="PostalCode" class="form-control" />
+                        <span asp-validation-for="PostalCode" class="text-danger small-help"></span>
+                    </div>
+                </div>
+
+                @* <div class="row">
+                    <div class="col-md-6 mb-4 form-group">
+                        <label asp-for="Latitude" class="form-label">Latitude</label>
+                        <input asp-for="Latitude" type="text" class="form-control" data-val="false"
+                            placeholder="e.g., -29.8587" />
+                        <span asp-validation-for="Latitude" class="text-danger small-help"></span>
+                    </div>
+                    <div class="col-md-6 mb-4 form-group">
+                        <label asp-for="Longitude" class="form-label">Longitude</label>
+                        <input asp-for="Longitude" type="text" class="form-control" data-val="false"
+                            placeholder="e.g., 31.0218" />
+                        <span asp-validation-for="Longitude" class="text-danger small-help"></span>
+                    </div>
+                </div> *@
+
+                @* Hidden field for PriorityLevel (Default to 1) *@
+                <input asp-for="PriorityLevel" type="hidden" value="1" />
+
+                @* --- Section: Citizen Contact Information --- *@
+                <h2 class="form-section-header">Citizen Contact Information</h2>
+
+                <div class="row">
+                    <div class="col-md-6 mb-4 form-group">
+                        <label asp-for="CitizenName" class="form-label">Name <span class="text-danger">*</span></label>
+                        <input asp-for="CitizenName" class="form-control" required />
+                        <span asp-validation-for="CitizenName" class="text-danger small-help"></span>
+                    </div>
+                    <div class="col-md-6 mb-4 form-group">
+                        <label asp-for="CitizenSurname" class="form-label">Surname <span
+                                class="text-danger">*</span></label>
+                        <input asp-for="CitizenSurname" class="form-control" required />
+                        <span asp-validation-for="CitizenSurname" class="text-danger small-help"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-4 form-group">
+                        <label asp-for="CitizenEmail" class="form-label">Email Address <span
+                                class="text-danger">*</span></label>
+                        <input asp-for="CitizenEmail" type="email" class="form-control" required />
+                        <span asp-validation-for="CitizenEmail" class="text-danger small-help"></span>
+                    </div>
+                    <div class="col-md-6 mb-4 form-group">
+                        <label asp-for="CitizenCellNumber" class="form-label">Cell Number</label>
+                        <input asp-for="CitizenCellNumber" class="form-control" placeholder="e.g., 0821234567" />
+                        <span asp-validation-for="CitizenCellNumber" class="text-danger small-help"></span>
+                    </div>
+                </div>
+
+                @* --- Section: Attachments --- *@
+                <h2 class="form-section-header">Attachments</h2>
+
+                <div class="mb-5 form-group">
+                    <label class="form-label">Upload Attachments (Optional)</label>
+                    <small class="text-muted d-block mb-2">
+                        You can upload up to 5 files (photos, videos, or documents) to support your request.
+                    </small>
+                    <input asp-for="Attachments" type="file" multiple class="form-control" />
+                    <div class="small-help">
+                        Allowed formats: `.jpg`, `.jpeg`, `.png`, `.gif`, `.mp4`, `.avi`, `.mov`, `.mkv`,
+                        `.pdf`, `.doc`, `.docx`, `.odt`, `.rtf`, `.txt`.
+                    </div>
+                </div>
+
+                @* --- Submission Button --- *@
+                <div class="d-grid gap-3">
+                    <button type="submit" class="btn btn-primary btn-submit">
+                        <i class="bi bi-send-fill me-1"></i> Submit Service Request
+                    </button>
+                    @* Assuming there is a back button to a user list or home *@
+                    <a asp-action="Dashboard" class="btn btn-secondary">
+                        <i class="bi bi-x-circle-fill me-1"></i> Cancel / Back to All User Requests
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

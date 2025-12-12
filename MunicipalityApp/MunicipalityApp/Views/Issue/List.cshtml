@@ -1,0 +1,186 @@
+@model List<MunicipalityApp.Models.Issue>
+@{
+    ViewData["Title"] = "My Reported Issues";
+}
+<style>
+    :root {
+        --primary-blue: #004d9e;
+        --light-blue: #007ac3;
+        --dark-gray: #333;
+        --light-gray: #f2f2f2;
+        --text-color: #555;
+        --border-color: #ddd;
+        --podium-blue: #0A2342;
+    }
+
+    .report-issue-container {
+        padding: 2rem 0;
+    }
+
+    .form-card {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        padding: 2.5rem;
+        backdrop-filter: blur(5px);
+    }
+
+    .form-header {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary-blue);
+        margin-bottom: 0.5rem;
+    }
+
+    .form-subtitle {
+        font-size: 1.1rem;
+        color: var(--dark-gray);
+        margin-bottom: 2rem;
+    }
+
+    .btn-submit {
+        background-color: var(--primary-blue);
+        border-color: var(--primary-blue);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn-submit:hover {
+        background-color: var(--light-blue);
+        border-color: var(--light-blue);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Fancy Table Styles */
+    .fancy-table-container {
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    }
+
+    .fancy-table {
+        width: 100%;
+        border-collapse: collapse;
+        color: var(--dark-gray);
+    }
+
+    .fancy-table thead {
+        background-color: var(--podium-blue);
+        color: white;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .fancy-table th,
+    .fancy-table td {
+        padding: 1rem 1.5rem;
+        text-align: left;
+    }
+
+    .fancy-table tbody tr:nth-child(odd) {
+        background-color: white;
+    }
+
+    .fancy-table tbody tr:nth-child(even) {
+        background-color: var(--light-gray);
+    }
+
+    .fancy-table tbody tr:hover {
+        background-color: #e0e0e0;
+    }
+
+    .progress-badge {
+        font-weight: bold;
+        padding: 0.3em 0.7em;
+        border-radius: 50px;
+        font-size: 0.85em;
+        display: inline-block;
+    }
+
+    .progress-pending {
+        background-color: #ffc107;
+        color: #664d03;
+    }
+
+    .progress-in-progress {
+        background-color: #0d6efd;
+        color: white;
+    }
+
+    .progress-completed {
+        background-color: #198754;
+        color: white;
+    }
+</style>
+<div class="row justify-content-center report-issue-container">
+    <div class="col-lg-10">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="form-header">My Reported Issues</h1>
+                <p class="form-subtitle">Track the progress of your reports.</p>
+            </div>
+            <a asp-controller="Issue" asp-action="Report" class="btn btn-primary btn-submit">
+                Report Issues +
+            </a>
+        </div>
+        @if (Model == null || !Model.Any())
+        {
+            <div class="alert alert-info text-center">
+                You haven't reported any issues yet.
+            </div>
+        }
+        else
+        {
+            <div class="fancy-table-container">
+                <table class="fancy-table">
+                    <thead>
+                        <tr>
+                            <th>Location</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th>Attachments</th>
+                            <th>Time</th>
+                            <th>Progress</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var issue in Model)
+                        {
+                            <tr>
+                                <td>@issue.Location</td>
+                                <td>@issue.Category</td>
+                                <td>@issue.Description</td>
+                                <td>
+                                    @foreach (var file in issue.Attachments)
+                                    {
+                                        <a href="@file" target="_blank">View</a>
+                                        <br />
+                                    }
+                                </td>
+                                <td>@issue.Timestamp.ToString("g")</td>
+                                <td>
+                                    @{
+                                        string badgeClass = "";
+                                        switch (issue.Progress)
+                                        {
+                                            case "Pending":
+                                                badgeClass = "progress-pending";
+                                                break;
+                                            case "In Progress":
+                                                badgeClass = "progress-in-progress";
+                                                break;
+                                            case "Completed":
+                                                badgeClass = "progress-completed";
+                                                break;
+                                        }
+                                    }
+                                    <span class="progress-badge @badgeClass">@issue.Progress</span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,265 @@
+@model List<MunicipalityApp.Models.Issue>
+@{
+    ViewData["Title"] = "All Reported Issues (Admin)";
+    var progressOptions = new[] { "Submitted", "Under Review", "In Progress", "Completed/Resolved" };
+
+    var fromDate = ViewBag.FromDate as string;
+    var toDate = ViewBag.ToDate as string;
+    var searchQuery = ViewBag.SearchQuery as string;
+
+    var usernameFilter = ViewBag.UsernameFilter as string;
+    var categoryFilter = ViewBag.CategoryFilter as string;
+    var progressFilter = ViewBag.ProgressFilter as string;
+
+    var allUsers = ViewBag.AllUsers as List<string> ?? new List<string>();
+    var allCategories = ViewBag.AllCategories as List<string> ?? new List<string>();
+    var allProgress = ViewBag.AllProgress as List<string> ?? new List<string>();
+}
+<style>
+    :root {
+        --primary-blue: #004d9e;
+        --light-blue: #007ac3;
+        --dark-gray: #333;
+        --light-gray: #f2f2f2;
+        --text-color: #555;
+        --border-color: #ddd;
+        --podium-blue: #0A2342;
+    }
+
+    .report-issue-container {
+        padding: 2rem 0;
+    }
+
+    .form-header {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary-blue);
+        margin-bottom: 0.5rem;
+    }
+
+    .form-subtitle {
+        font-size: 1.1rem;
+        color: var(--dark-gray);
+        margin-bottom: 2rem;
+    }
+
+    .form-control,
+    .form-select {
+        background-color: var(--light-gray);
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        background-color: white;
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 0.25rem rgba(0, 77, 158, 0.25);
+    }
+
+    .btn-primary {
+        background-color: var(--primary-blue);
+        border-color: var(--primary-blue);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn-primary:hover {
+        background-color: var(--light-blue);
+        border-color: var(--light-blue);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-secondary {
+        border-color: #6c757d;
+        color: #6c757d;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+        background-color: #6c757d;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Fancy Table Styles */
+    .fancy-table-container {
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    }
+
+    .fancy-table {
+        width: 100%;
+        border-collapse: collapse;
+        color: var(--dark-gray);
+    }
+
+    .fancy-table thead {
+        background-color: var(--podium-blue);
+        color: white;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .fancy-table th,
+    .fancy-table td {
+        padding: 1rem 1.5rem;
+        text-align: left;
+    }
+
+    .fancy-table tbody tr:nth-child(odd) {
+        background-color: white;
+    }
+
+    .fancy-table tbody tr:nth-child(even) {
+        background-color: var(--light-gray);
+    }
+
+    .fancy-table tbody tr:hover {
+        background-color: #e0e0e0;
+    }
+
+    .progress-dropdown {
+        background-color: var(--light-gray);
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+    }
+
+    .progress-dropdown:focus {
+        background-color: white;
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 0.25rem rgba(0, 77, 158, 0.25);
+    }
+</style>
+<div class="row justify-content-center report-issue-container">
+    <div class="col-lg-10 mx-auto">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="form-header">All Reported Issues</h1>
+                <p class="form-subtitle">Administrator view of all issues.</p>
+            </div>
+        </div>
+
+        <form method="get" class="d-flex flex-wrap align-items-center gap-2 mb-3">
+            <input type="date" name="fromDate" value="@fromDate" class="form-control" style="max-width:160px;" />
+            <input type="date" name="toDate" value="@toDate" class="form-control" style="max-width:160px;" />
+            <input type="text" name="searchQuery" value="@searchQuery" placeholder="Search location or description"
+                class="form-control" style="min-width:200px;" />
+
+            <select name="usernameFilter" class="form-select" style="max-width:180px;">
+                <option value="">Filter by User</option>
+                @foreach (var user in allUsers)
+                {
+                    <option value="@user" selected="@(usernameFilter == user)">@user</option>
+                }
+            </select>
+
+            <select name="categoryFilter" class="form-select" style="max-width:180px;">
+                <option value="">Filter by Category</option>
+                @foreach (var category in allCategories)
+                {
+                    <option value="@category" selected="@(categoryFilter == category)">@category</option>
+                }
+            </select>
+
+            <select name="progressFilter" class="form-select" style="max-width:180px;">
+                <option value="">Filter by Progress</option>
+                @foreach (var progress in allProgress)
+                {
+                    <option value="@progress" selected="@(progressFilter == progress)">@progress</option>
+                }
+            </select>
+
+            <button type="submit" class="btn btn-primary">Apply</button>
+            <a class="btn btn-secondary" asp-action="AllList">Clear</a>
+        </form>
+
+        @if (Model == null || !Model.Any())
+        {
+            <div class="alert alert-info text-center">
+                No issues match the selected filters.
+            </div>
+        }
+        else
+        {
+            <div class="fancy-table-container">
+                <table class="fancy-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Location</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th>Attachments</th>
+                            <th>Time</th>
+                            <th>Progress</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var issue in Model)
+                        {
+                            <tr>
+                                <td>@issue.Username</td>
+                                <td>@issue.Location</td>
+                                <td>@issue.Category</td>
+                                <td>
+                                    <div style="max-height: 100px; overflow-y: auto;">
+                                        @issue.Description
+                                    </div>
+                                </td>
+                                <td>
+                                    @foreach (var file in issue.Attachments)
+                                    {
+                                        <a href="@file" target="_blank">View</a>
+                                        <br />
+                                    }
+                                </td>
+                                <td>@issue.Timestamp.ToString("g")</td>
+                                <td>
+                                    <select class="form-select progress-dropdown" data-issue-id="@issue.Id">
+                                        @foreach (var option in progressOptions)
+                                        {
+                                            var isSelected = option == issue.Progress;
+                                            <option value="@option" selected="@isSelected">@option</option>
+                                        }
+                                    </select>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('.progress-dropdown').change(function () {
+            var issueId = $(this).data('issue-id');
+            var newProgress = $(this).val();
+
+            $.ajax({
+                url: '@Url.Action("UpdateProgressAjax", "Issue")',
+                type: 'POST',
+                data: {
+                    issueId: issueId,
+                    newProgress: newProgress
+                },
+                success: function (response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                    } else {
+                        toastr.error(response.message);
+                    }
+                },
+                error: function () {
+                    toastr.error('Error updating progress!');
+                }
+            });
+        });
+    });
+</script>

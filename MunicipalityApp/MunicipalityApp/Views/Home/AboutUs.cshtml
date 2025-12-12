@@ -1,0 +1,101 @@
+@model dynamic
+@{
+    ViewData["Title"] = "About Us";
+}
+
+<style>
+    :root {
+        --primary-blue: #004d9e;
+        --light-blue: #007ac3;
+        --dark-gray: #333;
+        --light-gray: #f2f2f2;
+        --text-color: #555;
+        --border-color: #ddd;
+    }
+
+    .privacy-container {
+        padding: 2rem 0;
+        max-width: 800px;
+        margin: auto;
+    }
+
+    .privacy-header {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary-blue);
+        margin-bottom: 0.5rem;
+    }
+
+    .privacy-subtitle {
+        font-size: 1.1rem;
+        color: var(--dark-gray);
+        margin-bottom: 2rem;
+    }
+
+    .privacy-section {
+        margin-bottom: 2rem;
+    }
+
+    .privacy-section h2 {
+        font-size: 1.5rem;
+        color: var(--dark-gray);
+        font-weight: bold;
+        border-bottom: 2px solid var(--primary-blue);
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .privacy-section p,
+    .privacy-section li {
+        color: var(--text-color);
+        line-height: 1.6;
+        font-size: 1rem;
+    }
+
+    .privacy-section ul {
+        padding-left: 20px;
+    }
+
+    .contact-info {
+        font-style: italic;
+        color: var(--dark-gray);
+    }
+</style>
+
+<div class="privacy-container">
+    <h1 class="privacy-header">@ViewData["Title"]</h1>
+    <p class="privacy-subtitle">About VC Municipality</p>
+
+    <div class="privacy-section">
+        <h2>Introduction</h2>
+        <p>
+            Welcome to the official website for VC Municipality! We are a South African municipality committed to
+            improving citizen engagement and service delivery through technology. Our goal is to provide an efficient
+            and user-friendly platform for residents to access and request various municipal services.
+        </p>
+    </div>
+
+    <div class="privacy-section">
+        <h2>Our Platform</h2>
+        <p>
+            We understand the importance of making municipal services easily accessible. That's why we developed a
+            comprehensive application designed to empower our residents. Through our platform, you can:
+        </p>
+        <ul>
+            <li><strong>Report Issues and Request Services:</strong> Easily report problems and submit service requests.
+            </li>
+            <li><strong>Stay Informed:</strong> Access information about local events and announcements.</li>
+            <li><strong>Track Your Requests:</strong> Get updates on the status of your service requests.</li>
+        </ul>
+    </div>
+
+    <div class="privacy-section">
+        <h2>Our Commitment</h2>
+        <p>
+            We aim to create a user-centric experience that adds value to your life within the municipality. By
+            leveraging C#.NET Framework software and advanced data structures and algorithms, we are building a robust
+            and reliable platform for our community. We're excited to have you on board as we continue to streamline and
+            enhance our services for everyone.
+        </p>
+    </div>
+</div>

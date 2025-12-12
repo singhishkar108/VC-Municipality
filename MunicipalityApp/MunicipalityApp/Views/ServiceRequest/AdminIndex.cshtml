@@ -1,0 +1,713 @@
+@model IEnumerable<MunicipalityApp.Models.ServiceRequest>
+@using System.Text.RegularExpressions
+@{
+    ViewData["Title"] = "Admin Service Request Management";
+    // Get view bag items
+    var serviceTypes = ViewBag.ServiceTypes as string[] ?? Array.Empty<string>();
+    var departments = ViewBag.Departments as string[] ?? Array.Empty<string>();
+    var statuses = ViewBag.Statuses as string[] ?? Array.Empty<string>();
+    var priorities = ViewBag.Priorities as int[] ?? Array.Empty<int>();
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+@* --- Consolidated Styling Block --- *@
+<style>
+    :root {
+        --primary-blue: #004d9e;
+        --light-blue: #007ac3;
+        --dark-gray: #333;
+        --light-gray: #f2f2f2;
+        --border-color: #ddd;
+        --podium-blue: #0A2342;
+        /* Primary Admin/Header Color */
+        --red-status: #e74c3c;
+        --yellow-status: #f39c12;
+        --green-status: #2ecc71;
+        --view-details-blue: #3498db;
+    }
+
+    /* FIX: Change container-fluid to container for standard max-width */
+    .admin-request-container {
+        /* CHANGED: Switched from container-fluid to standard Bootstrap 'container' equivalent */
+        max-width: 1200px;
+        /* Standard Bootstrap large container size or adjust as needed */
+        padding: 2rem 0;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* Centralized Heading Style */
+    .form-header {
+        font-size: 2.25rem;
+        font-weight: 800;
+        color: var(--podium-blue);
+        margin-bottom: 0.25rem;
+    }
+
+    .form-subtitle {
+        font-size: 1rem;
+        color: #6c757d;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Input/Select Styling */
+    .form-control,
+    .form-select {
+        background-color: #ffffff;
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        background-color: white;
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 0.25rem rgba(0, 77, 158, 0.25);
+    }
+
+    /* Filter Panel Styling */
+    .filter-panel {
+        background-color: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+        padding: 1.5rem;
+    }
+
+    .filter-panel-header {
+        cursor: pointer;
+        font-size: 1.15rem;
+        color: var(--podium-blue);
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--light-gray);
+        margin-bottom: 1rem;
+    }
+
+    /* Button specific style for the bottom bar */
+    .btn-apply-reset {
+        font-size: 0.95rem;
+        padding: 0.65rem;
+        border-radius: 8px;
+        transition: transform 0.2s ease;
+    }
+
+    .btn-apply-reset:hover {
+        transform: translateY(-1px);
+    }
+
+    .btn-apply-reset-primary {
+        background-color: var(--primary-blue);
+        border-color: var(--primary-blue);
+        color: white;
+    }
+
+    .btn-apply-reset-secondary {
+        border: 1px solid #6c757d;
+        color: #6c757d;
+        background-color: white;
+    }
+
+    /* Fancy Table Styles */
+    .fancy-table-container {
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        overflow-x: auto;
+    }
+
+    .fancy-table {
+        /* MIN-WIDTH DECREASED: Adjusted for safer horizontal scrolling now that two wide columns are hidden */
+        min-width: 1200px;
+        width: 100%;
+        border-collapse: collapse;
+        color: var(--dark-gray);
+        font-size: 0.9rem;
+    }
+
+    .fancy-table thead {
+        background-color: var(--podium-blue);
+        color: white;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .fancy-table th,
+    .fancy-table td {
+        padding: 0.75rem 1rem;
+        text-align: left;
+        vertical-align: middle;
+    }
+
+    .fancy-table tbody tr:nth-child(odd) {
+        background-color: white;
+    }
+
+    .fancy-table tbody tr:nth-child(even) {
+        background-color: var(--light-gray);
+    }
+
+    .fancy-table tbody tr:hover {
+        background-color: #e0e0e0;
+    }
+
+    /* Truncation styles for long cells */
+    .truncated-cell {
+        /* Base max width, can be overridden */
+        max-width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* FIX: Increased max-width for Location and User Details columns to prevent cut-off */
+    .admin-user-details {
+        max-width: 350px;
+    }
+
+    .admin-location-details {
+        max-width: 350px;
+    }
+
+    /* Inline Select/Dropdown Styles */
+    .admin-dropdown-cell .form-select {
+        font-size: 0.85rem;
+        padding: 0.375rem 0.75rem 0.375rem 0.375rem;
+        /* Tighter padding */
+        min-width: 130px;
+        /* Slightly wider dropdowns */
+        line-height: 1.5;
+        height: auto;
+    }
+
+    /* Action Button Styling */
+    .btn-table-action {
+        padding: 0.5rem 0.6rem;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        color: var(--dark-gray);
+        /* Icons are black/dark gray */
+        transition: all 0.2s ease;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-table-action:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-view-details {
+        background-color: var(--view-details-blue);
+        color: rgb(0, 0, 0) !important;
+        /* Override dark-gray for info button */
+    }
+
+    .btn-download-attachments {
+        background-color: var(--green-status);
+        color: rgb(0, 0, 0) !important;
+    }
+
+    .btn-no-attachments {
+        font-size: 0.8rem;
+        color: #999;
+    }
+
+    /* Media query to force scroll when screen is smaller than min-width */
+    /* UPDATED: Changed max-width to 1200px to match the new fancy-table min-width */
+    @@media (max-width: 1200px) {
+        .fancy-table-container {
+            overflow-x: scroll;
+        }
+    }
+</style>
+
+<div class="container admin-request-container"> @* CHANGED: container-fluid class removed, fixed width handled by .admin-request-container CSS *@
+    @* ENFORCED: col-lg-10 mx-auto wrapper added *@
+    <div class="col-lg-10 mx-auto">
+
+        @* --- Centralized Heading (MODIFIED) --- *@
+        <div class="row align-items-center mb-5">
+            <div class="col-md-9">
+                <div class="text-center text-md-start">
+                    <h1 class="form-header"><i class="bi bi-person-fill-gear me-2"></i> @ViewData["Title"]</h1>
+                    <p class="form-subtitle">Manage, update, and track all service requests across the municipality.</p>
+                </div>
+            </div>
+            <div class="col-md-3 text-center text-md-end">
+                @* 👇 UPDATED BUTTON: Smaller (sm) and Blue (primary) 👇 *@
+                <a asp-controller="ServiceRequest" asp-action="Dashboard" class="btn btn-primary btn-sm">
+                    <i class="bi bi-speedometer2 me-2"></i> User Dashboard
+                </a>
+            </div>
+        </div>
+        @* --- End Centralized Heading --- *@
+
+        @* --- Consolidated Search and Filter Panel --- *@
+        <div class="filter-panel mb-5">
+            <div class="filter-panel-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse"
+                data-bs-target="#adminFilterBody" aria-expanded="true" aria-controls="adminFilterBody">
+                <span class="fw-bold"><i class="bi bi-funnel-fill me-2"></i> Search and Filter Options</span>
+                <i class="bi bi-chevron-up"></i>
+            </div>
+
+            <div class="collapse show filter-panel-body" id="adminFilterBody">
+
+                @* Search Bar Row *@
+                <div class="row mb-4 align-items-center g-2">
+                    <div class="col-12">
+                        <label class="form-label small text-muted">Keyword Search</label>
+                        <input type="text" id="adminSearchTerm" class="form-control"
+                            placeholder="Search by ID, Title, Location, or User Details..." />
+                    </div>
+                </div>
+
+                @* Dropdown Filters Row *@
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted">Status</label>
+                        <select id="adminStatusFilter" class="form-select form-select-sm">
+                            <option value="All">All Statuses</option>
+                            @foreach (var status in statuses)
+                            {
+                                <option value="@status">@status</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted">Priority</label>
+                        <select id="adminPriorityFilter" class="form-select form-select-sm">
+                            <option value="All">All Priorities</option>
+                            @foreach (var priority in priorities.OrderByDescending(p => p))
+                            {
+                                <option value="@priority">@priority (@(priority == 5 ? "Highest" : priority == 1 ? "Lowest"
+                                                                    : ""))</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted">Service Type</label>
+                        <select id="adminServiceTypeFilter" class="form-select form-select-sm">
+                            <option value="All">All Service Types</option>
+                            @foreach (var type in serviceTypes)
+                            {
+                                <option value="@type">@type</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted">Assigned Department</label>
+                        <select id="adminDepartmentFilter" class="form-select form-select-sm">
+                            <option value="All">All Departments</option>
+                            @foreach (var dept in departments)
+                            {
+                                <option value="@dept">@dept</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                @* Date Range Filters and Sort Row *@
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label small text-muted">Date Requested Range</label>
+                        <div class="input-group">
+                            <input type="date" id="dateRequestedStart" class="form-control form-control-sm"
+                                title="Start Date" />
+                            <span class="input-group-text">-</span>
+                            <input type="date" id="dateRequestedEnd" class="form-control form-control-sm"
+                                title="End Date" />
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label small text-muted">Completed Date Range</label>
+                        <div class="input-group">
+                            <input type="date" id="completedDateStart" class="form-control form-control-sm"
+                                title="Start Date" />
+                            <span class="input-group-text">-</span>
+                            <input type="date" id="completedDateEnd" class="form-control form-control-sm"
+                                title="End Date" />
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label small text-muted">Sort by Date Requested</label>
+                        <select id="dateRequestedSort" class="form-select form-select-sm">
+                            <option value="">No Sort</option>
+                            <option value="desc">Newest First</option>
+                            <option value="asc">Oldest First</option>
+                        </select>
+                    </div>
+                </div>
+
+                @* Apply/Reset Buttons *@
+                <div class="row pt-3 border-top mt-4">
+                    <div class="col-md-6 mb-2 mb-md-0">
+                        <button id="adminSearchButton" class="btn btn-apply-reset btn-apply-reset-primary w-100">
+                            <i class="bi bi-filter me-1"></i> Apply Filters
+                        </button>
+                    </div>
+                    <div class="col-md-6">
+                        <button id="clearAdminFilters" class="btn btn-apply-reset btn-apply-reset-secondary w-100">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* --- End Consolidated Filter Panel --- *@
+
+        @* --- Table Display --- *@
+        <div class="fancy-table-container">
+            <table class="fancy-table align-middle" id="adminRequestsTable"
+                style="display: @(Model.Any() ? "table" : "none");">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Service Type</th>
+                        <th>Assigned Department</th>
+                        @* <th>Location</th> @* COMMENTED OUT: Location Column Header *@
+                        <th>Date Requested</th>
+                        <th>Completed Date</th>
+                        <th>Status</th>
+                        <th>Priority Level</th>
+                        <th>Attachments</th>
+                        @* <th>User Details</th> @* COMMENTED OUT: User Details Column Header *@
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="adminRequestsBody">
+                    @foreach (var req in Model)
+                    {
+                        <tr data-request-id="@req.RequestID">
+                            <td>@req.RequestID</td>
+                            <td>
+                                <div class="truncated-cell" title="@req.Title">
+                                    <strong>@req.Title</strong>
+                                </div>
+                            </td>
+
+                            <td class="admin-dropdown-cell">
+                                <select class="form-select admin-update-dropdown form-select-sm" data-property="ServiceType"
+                                    data-current="@req.ServiceType">
+                                    @foreach (var type in serviceTypes)
+                                    {
+                                        <option value="@type" selected="@(type == req.ServiceType)">@type</option>
+                                    }
+                                </select>
+                            </td>
+
+                            <td class="admin-dropdown-cell">
+                                <select class="form-select admin-update-dropdown form-select-sm"
+                                    data-property="AssignedDepartment" data-current="@req.AssignedDepartment">
+                                    @foreach (var dept in departments)
+                                    {
+                                        <option value="@dept" selected="@(dept == req.AssignedDepartment)">@dept</option>
+                                    }
+                                </select>
+                            </td>
+
+                            @* <td class="admin-location-details"> @* COMMENTED OUT: Location Column Body (Razor)
+                                @{
+                                    string locationDetails = $"{req.StreetNumber}, {req.StreetAddressLine2}, {req.Suburb}, {req.City}, {req.PostalCode}, {req.Latitude}, {req.Longitude}";
+                                }
+                                <div class="truncated-cell" title="@locationDetails">
+                                    @locationDetails
+                                </div>
+                            </td> *@
+                            <td class="text-nowrap">@req.DateRequested.ToString("yyyy-MM-dd")</td>
+
+                            <td class="completed-date-cell text-nowrap">
+                                @if (req.Status == "Cancelled")
+                                {
+                                    <span class="text-danger small">Cancelled</span>
+                                }
+                                else
+                                {
+                                    <span>@(req.CompletedDate.HasValue ? req.CompletedDate.Value.ToString("yyyy-MM-dd") :
+                                                                "N/A")</span>
+                                }
+                            </td>
+
+                            <td class="admin-dropdown-cell">
+                                <select class="form-select admin-update-dropdown form-select-sm" data-property="Status"
+                                    data-current="@req.Status">
+                                    @foreach (var status in statuses)
+                                    {
+                                        <option value="@status" selected="@(status == req.Status)">@status</option>
+                                    }
+                                </select>
+                            </td>
+
+                            <td class="admin-dropdown-cell">
+                                <select class="form-select admin-update-dropdown form-select-sm"
+                                    data-property="PriorityLevel" data-current="@req.PriorityLevel">
+                                    @foreach (var priority in priorities.OrderByDescending(p => p))
+                                    {
+                                        <option value="@priority" selected="@(priority == req.PriorityLevel)">@priority</option>
+                                    }
+                                </select>
+                            </td>
+
+                            <td>
+                                @if (req.Attachments != null && req.Attachments.Count > 0)
+                                {
+                                    <a class="btn btn-table-action btn-download-attachments"
+                                        href="@Url.Action("DownloadAttachments", "ServiceRequest", new { requestId = req.RequestID })"
+                                        title="Download (@req.Attachments.Count)">
+                                        <i class="bi bi-cloud-download-fill"></i>
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="btn-no-attachments">None</span>
+                                }
+                            </td>
+
+                            @* <td class="admin-user-details"> @* COMMENTED OUT: User Details Column Body (Razor)
+                                @{
+                                    string userDetails = $"{req.CitizenName}, {req.CitizenSurname}, {req.CitizenEmail}, {req.CitizenCellNumber}, {req.TrackingUsername}";
+                                }
+                                <div class="truncated-cell" title="@userDetails">
+                                    @userDetails
+                                </div>
+                            </td> *@
+
+                            <td class="text-nowrap">
+                                <a class="btn btn-table-action btn-view-details"
+                                    href="@Url.Action("AdminDetails", "ServiceRequest", new { id = req.RequestID })"
+                                    title="View Request Details">
+                                    <i class="bi bi-eye-fill"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div id="noAdminResults" class="text-center text-muted mt-4" style="display:@(Model.Any() ? "none" : "block");">
+            <p><i class="bi bi-info-circle me-1"></i> No matching requests found.</p>
+        </div>
+    </div>
+    @* ENFORCED: col-lg-10 mx-auto wrapper end *@
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+
+            // Get Razor arrays into JS
+            const allServiceTypes = @Html.Raw(Json.Serialize(serviceTypes));
+            const allDepartments = @Html.Raw(Json.Serialize(departments));
+            const allStatuses = @Html.Raw(Json.Serialize(statuses));
+            const allPriorities = @Html.Raw(Json.Serialize(priorities.OrderByDescending(p => p)));
+
+            // Function to build dropdown options - used inside AJAX success
+            const buildOptions = (list, prop, current) =>
+                list.map(item =>
+                    `<option value="${item}" ${item.toString() === current.toString() ? 'selected' : ''}>${item}</option>`
+                ).join('');
+
+            // Function to handle AJAX updates (re-bound after filtering)
+            const bindAdminUpdateHandlers = () => {
+                $('.admin-update-dropdown').off('change').on('change', function () {
+                    const selectElement = $(this);
+                    const row = selectElement.closest('tr');
+                    const requestId = row.data('request-id');
+                    const propertyName = selectElement.data('property');
+                    const newValue = selectElement.val();
+                    const currentValue = selectElement.data('current');
+
+                    $.ajax({
+                        url: '@Url.Action("UpdateServiceRequestProperty", "ServiceRequest")',
+                        type: 'POST',
+                        data: {
+                            id: requestId,
+                            propertyName: propertyName,
+                            newValue: newValue
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                selectElement.data('current', newValue);
+
+                                // Update Completed Date cell if status changed or date was returned
+                                if (propertyName === 'Status' || response.completedDate !== undefined) {
+                                    const completedCell = row.find('.completed-date-cell span');
+                                    if (newValue === 'Cancelled') {
+                                        completedCell.removeClass().addClass('text-danger small').text('Cancelled');
+                                    } else {
+                                        completedCell.removeClass('text-danger small');
+                                        completedCell.text(response.completedDate ? response.completedDate.substring(0, 10) : 'N/A');
+                                    }
+                                }
+
+                            } else {
+                                selectElement.val(currentValue);
+                                alert('Update failed: ' + response.message);
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            selectElement.val(currentValue);
+                            alert('An error occurred during update: ' + error);
+                        }
+                    });
+                });
+            };
+
+            // Re-usable function to load and filter data for Admin Index
+            const loadAdminFilteredData = () => {
+                const data = {
+                    searchTerm: $('#adminSearchTerm').val(),
+                    status: $('#adminStatusFilter').val(),
+                    priority: $('#adminPriorityFilter').val(),
+                    assignedDepartment: $('#adminDepartmentFilter').val(),
+                    serviceType: $('#adminServiceTypeFilter').val(),
+                    dateRequestedSort: $('#dateRequestedSort').val(),
+                    dateRequestedStart: $('#dateRequestedStart').val(),
+                    dateRequestedEnd: $('#dateRequestedEnd').val(),
+                    // Remove completedDateSort - it was not in the filter panel
+                    completedDateStart: $('#completedDateStart').val(),
+                    completedDateEnd: $('#completedDateEnd').val()
+                };
+
+                $.ajax({
+                    url: '@Url.Action("FilterAdminRequests", "ServiceRequest")',
+                    type: 'GET',
+                    data: data,
+                    success: function (data) {
+                        const tbody = $('#adminRequestsBody');
+                        tbody.empty();
+
+                        const $table = $('#adminRequestsTable');
+
+                        if (data.length === 0) {
+                            $('#noAdminResults').show();
+                            $table.hide();
+                            return;
+                        }
+
+                        $('#noAdminResults').hide();
+                        $table.show();
+
+                        data.forEach(req => {
+
+                            // Location String Cleanup (Kept for AJAX search functionality, even if column is commented out)
+                            // const locationDetails = `${req.streetNumber || ''}, ${req.streetAddressLine2 || ''}, ${req.suburb || ''}, ${req.city || ''}, ${req.postalCode || ''}, ${req.latitude || ''}, ${req.longitude || ''}`.replace(/,\s*,/g, ', ').replace(/,\s*$/g, '').trim();
+
+                            const locationDetails = `${req.streetNumber || ''}, ${req.streetAddressLine2 || ''}, ${req.suburb || ''}, ${req.city || ''}, ${req.postalCode || ''}`.replace(/,\s*,/g, ', ').replace(/,\s*$/g, '').trim();
+
+                            // User Details String Cleanup (Kept for AJAX search functionality, even if column is commented out)
+                            const userDetails = `${req.citizenName || ''}, ${req.citizenSurname || ''}, ${req.citizenEmail || ''}, ${req.citizenCellNumber || ''}, ${req.trackingUsername || ''}`.replace(/,\s*,/g, ', ').replace(/,\s*$/g, '').trim();
+
+
+                            // Attachments HTML
+                            const attachmentsHtml = req.attachmentCount > 0
+                                ? `<td class="text-center"><a class="btn btn-table-action btn-download-attachments" href="/ServiceRequest/DownloadAttachments?requestId=${req.requestID}" title="Download (${req.attachmentCount})"><i class="bi bi-cloud-download-fill"></i></a></td>`
+                                : `<td><span class="btn-no-attachments">None</span></td>`;
+
+                            // Completed Date Display
+                            let completedDateDisplay = req.completedDate ? req.completedDate.substring(0, 10) : 'N/A';
+                            let completedDateStyle = 'text-nowrap';
+                            if (req.status === 'Cancelled') {
+                                completedDateDisplay = 'Cancelled';
+                                completedDateStyle = 'text-danger small text-nowrap';
+                            }
+
+                            const row = `
+                                                        <tr data-request-id="${req.requestID}">
+                                                            <td>${req.requestID}</td>
+                                                            <td>
+                                                                <div class="truncated-cell" title="${req.title}">
+                                                                    <strong>${req.title}</strong>
+                                                                </div>
+                                                            </td>
+
+                                                            <td class="admin-dropdown-cell">
+                                                                <select class="form-select admin-update-dropdown form-select-sm" data-property="ServiceType" data-current="${req.serviceType}">
+                                                                    ${buildOptions(allServiceTypes, 'ServiceType', req.serviceType)}
+                                                                </select>
+                                                            </td>
+
+                                                            <td class="admin-dropdown-cell">
+                                                                <select class="form-select admin-update-dropdown form-select-sm" data-property="AssignedDepartment" data-current="${req.assignedDepartment}">
+                                                                    ${buildOptions(allDepartments, 'AssignedDepartment', req.assignedDepartment)}
+                                                                </select>
+                                                            </td>
+
+                                                            <td class="text-nowrap">${req.dateRequested.substring(0, 10)}</td>
+
+                                                            <td class="completed-date-cell">
+                                                                <span class="${completedDateStyle}">${completedDateDisplay}</span>
+                                                            </td>
+
+                                                            <td class="admin-dropdown-cell">
+                                                                <select class="form-select admin-update-dropdown form-select-sm" data-property="Status" data-current="${req.status}">
+                                                                    ${buildOptions(allStatuses, 'Status', req.status)}
+                                                                </select>
+                                                            </td>
+
+                                                            <td class="admin-dropdown-cell">
+                                                                <select class="form-select admin-update-dropdown form-select-sm" data-property="PriorityLevel" data-current="${req.priorityLevel}">
+                                                                    ${buildOptions(allPriorities, 'PriorityLevel', req.priorityLevel)}
+                                                                </select>
+                                                            </td>
+
+                                                            ${attachmentsHtml}
+
+                                                            <td class="text-nowrap">
+                                                                <a class="btn btn-table-action btn-view-details" href="@Url.Action("AdminDetails", "ServiceRequest")/${req.requestID}" title="View Request Details">
+                                                                    <i class="bi bi-eye-fill"></i>
+                                                                </a>
+                                                            </td>
+                                                        </tr>`;
+                            tbody.append(row);
+                        });
+
+                        // Re-bind the update event handler to the newly created dropdowns
+                        bindAdminUpdateHandlers();
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error fetching filtered admin data: ' + error);
+                    }
+                });
+            };
+
+            // Event handler for filter panel chevron
+            $('#adminFilterBody').on('shown.bs.collapse', function () {
+                $('.filter-panel-header i').removeClass('bi-chevron-down').addClass('bi-chevron-up');
+            }).on('hidden.bs.collapse', function () {
+                $('.filter-panel-header i').removeClass('bi-chevron-up').addClass('bi-chevron-down');
+            });
+
+            // Event Handlers for Search and Filters
+            $('#adminSearchButton').on('click', loadAdminFilteredData);
+            // Trigger load on change for all filters (excluding search box)
+            $('select, input[type="date"]').on('change', loadAdminFilteredData);
+
+            // Reset filters
+            $('#clearAdminFilters').on('click', function () {
+                $('#adminSearchTerm').val('');
+                $('#adminStatusFilter').val('All');
+                $('#adminPriorityFilter').val('All');
+                $('#adminDepartmentFilter').val('All');
+                $('#adminServiceTypeFilter').val('All');
+                $('#dateRequestedSort').val('');
+                $('#dateRequestedStart').val('');
+                $('#dateRequestedEnd').val('');
+                // Remove completedDateSort reset
+                $('#completedDateStart').val('');
+                $('#completedDateEnd').val('');
+                loadAdminFilteredData();
+            });
+
+            // Initial load and binding (The Razor content is overridden immediately by this call for consistency)
+            loadAdminFilteredData();
+        });
+    </script>
+}

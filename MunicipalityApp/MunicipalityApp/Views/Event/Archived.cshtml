@@ -1,0 +1,547 @@
+@model List<MunicipalityApp.Models.Event>
+@using System.Globalization;
+
+@{
+    ViewData["Title"] = "Archived Events";
+    var categories = ViewBag.Categories as List<string> ?? new List<string>();
+    var filters = ViewBag.Filters;
+    string selectedCategory = filters?.category ?? "";
+    string fromDate = filters?.fromDate ?? "";
+    string toDate = filters?.toDate ?? "";
+    // FIXED: Ensure these properties are accessed from the filters object
+    string endFrom = filters?.endFrom ?? "";
+    string endTo = filters?.endTo ?? "";    
+    string location = filters?.location ?? "";
+    string searchQuery = filters?.searchQuery ?? "";
+    string orderByEndDate = filters?.orderByEndDate ?? ""; // New sorting filter
+
+    string dateFormat = "dd MMM yyyy, HH:mm";
+    var culture = CultureInfo.InvariantCulture;
+
+    // Archival calculation constants
+    const int daysUntilDeletion = 30;
+}
+
+<style>
+    /* CSS variables and general styles */
+    :root {
+        --primary-blue: #004d9e;
+        --light-blue: #007ac3;
+        --dark-gray: #2c3e50;
+        --light-gray: #ecf0f1;
+        --subtle-gray: #bdc3c7;
+        --red-warning: #dc3545;
+        --shadow-elevation-2: 0 4px 12px rgba(0, 0, 0, 0.08);
+        --transition-speed: 0.3s;
+    }
+
+    /* General Layout */
+    body {
+        background-color: #f7f9fc;
+    }
+    .events-container {
+        padding: 2rem 0;
+    }
+
+    /* --- PAGE HEADER STYLES --- */
+    .page-header-admin {
+        padding: 1.5rem 0 2rem 0;
+        text-align: center;
+    }
+
+    .page-header-admin h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--dark-gray);
+        margin-bottom: 0.5rem;
+    }
+
+    .page-header-admin p {
+        font-size: 1rem;
+        color: #777;
+        font-style: italic;
+    }
+
+    /* --- ADMIN-STYLE FILTER CARD --- */
+    .filter-card-admin {
+        background-color: white;
+        padding: 1.25rem 1.5rem;
+        border-radius: 8px;
+        box-shadow: var(--shadow-elevation-2);
+        margin-bottom: 3rem;
+    }
+    
+    .filter-card-admin .form-label {
+        font-weight: 600;
+        color: var(--dark-gray);
+        margin-bottom: 0.4rem;
+        font-size: 0.9rem;
+        width: 100%;
+    }
+    
+    .filter-card-admin .form-control,
+    .filter-card-admin .form-select {
+        border-radius: 6px;
+        padding: 0.5rem 0.75rem;
+        border-color: var(--subtle-gray);
+        font-size: 0.95rem;
+    }
+    
+    .filter-card-admin .btn-primary {
+        background-color: var(--primary-blue);
+        border-color: var(--primary-blue);
+        transition: background-color var(--transition-speed);
+    }
+    
+    .filter-card-admin .btn-primary:hover {
+        background-color: #003a7a;
+        border-color: #003a7a;
+    }
+    
+    .action-button-size {
+        padding: 0.6rem 1rem; 
+        font-size: 1rem;
+        height: 100%;
+        font-weight: 600; 
+    }
+
+    /* === FILTER LAYOUT STYLES === */
+    .filter-card-admin .row-line {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        align-items: flex-end;
+    }
+
+    .filter-card-admin .row-line:last-child {
+        margin-bottom: 0;
+    }
+
+    .filter-field {
+        flex-grow: 1;
+        min-width: 150px;
+    }
+
+    .search-input-wrapper {
+        flex-grow: 3;
+        min-width: 250px;
+    }
+
+    /* Action Buttons (Apply/Clear) - Spanning full width */
+    .action-button-row {
+        width: 100%;
+        display: flex;
+        justify-content: flex-start;
+        margin-top: 1rem;
+    }
+
+    .button-group-wrapper {
+        flex-grow: 1;
+        min-width: 100%;
+        display: flex;
+        gap: 1rem;
+    }
+
+    .button-group-wrapper .btn {
+        flex-grow: 1;
+        width: 50%;
+    }
+    /* === END FILTER LAYOUT STYLES === */
+
+
+    /* --- ARCHIVAL WARNING STYLES --- */
+    .archival-warning {
+        border: 2px solid var(--red-warning);
+        background-color: #fff3f3; /* Light red background */
+        color: var(--red-warning);
+        font-weight: 600;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+        text-align: center;
+        box-shadow: 0 4px 10px rgba(220, 53, 69, 0.1);
+    }
+
+    /* --- ARCHIVED EVENT CARD STYLES (MODIFIED) --- */
+    .event-card {
+        border-radius: 12px;
+        overflow: hidden;
+        border: 2px solid var(--red-warning); /* RED BORDER ADDED */
+        box-shadow: 0 6px 18px rgba(220, 53, 69, 0.15); /* Subtler red shadow */
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .event-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(220, 53, 69, 0.25);
+    }
+    
+    .event-media {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+        display: block;
+        filter: brightness(0.7); /* Slightly darken media for archived look */
+    }
+
+    .event-title {
+        font-weight: 700;
+        color: var(--dark-gray);
+        font-size: 1.25rem;
+        line-height: 1.4;
+        max-height: 2.8em;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+    
+    .event-meta {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+    }
+
+    .event-description {
+        font-size: 0.95rem;
+        color: var(--dark-gray);
+        line-height: 1.4;
+        max-height: 4.2em;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+    }
+    
+    .badge-hashtag {
+        background-color: var(--light-gray);
+        color: var(--primary-blue);
+        padding: 0.3em 0.6em;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        margin-right: 4px;
+        margin-top: 4px;
+        display: inline-block;
+        white-space: nowrap;
+    }
+
+    /* === START OF MODIFIED STYLES FOR DATE/BUTTON AREA === */
+    .event-dates-container {
+        display: flex;
+        justify-content: space-between; 
+        align-items: flex-start;
+        padding-bottom: 0.5rem; 
+        margin-bottom: 0.5rem; 
+        border-top: 1px solid var(--light-gray); 
+        padding-top: 0.75rem;
+    }
+
+    .date-column {
+        width: 48%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .date-column.end-date {
+        text-align: right; 
+    }
+
+    .date-label {
+        font-size: 0.8rem;
+        color: var(--dark-gray);
+        font-weight: 500;
+        margin-bottom: 0;
+        line-height: 1; 
+    }
+
+    /* CHANGE: Date values are now black (var(--dark-gray)) */
+    .date-time-value {
+        font-weight: 700;
+        color: var(--dark-gray); /* Changed from var(--primary-blue) to black */
+        font-size: 0.9rem;
+        line-height: 1.2;
+    }
+
+    /* CHANGE: Action area now spans full width (width: 100%) and justifies center */
+    .event-action-area {
+        padding-top: 0.5rem;
+        border-top: 1px solid var(--subtle-gray);
+        display: flex;
+        justify-content: center; /* Center the button, though it spans full width */
+    }
+
+    /* CHANGE: Button inside action area spans the full width of the card content */
+    .event-action-area .btn {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+    }
+    /* === END OF MODIFIED STYLES === */
+    
+    /* Back to Active Button Styling */
+    .back-button-wrapper {
+        display: flex;
+        justify-content: center;
+        max-width: 400px; /* Limit button width for aesthetics */
+        margin: 0 auto;
+    }
+
+    .back-button-wrapper .btn {
+        width: 100%;
+        background-color: var(--primary-blue);
+        border-color: var(--primary-blue);
+        color: white;
+    }
+    
+    .back-button-wrapper .btn:hover {
+        background-color: #003a7a;
+        border-color: #003a7a;
+    }
+</style>
+
+<div class="container events-container">
+
+    <div class="row">
+        <div class="col-12 page-header-admin">
+            <h1>Archived Events</h1>
+            <p>Past events awaiting final deletion.</p>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="archival-warning">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <span class="fw-bold">WARNING:</span> These events have ended and will be permanently deleted 30 days after their end date.
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-5">
+        <div class="col-12 filter-card-admin">
+            <form method="get" class="g-3">
+                
+                <div class="row-line">
+                    <div class="search-input-wrapper">
+                        <label class="form-label">Search Title/Description/Location</label>
+                        <input type="text" name="searchQuery" value="@searchQuery"
+                            placeholder="Search title, description, or location" class="form-control" />
+                    </div>
+                    
+                    <div class="filter-field" style="max-width: 180px;">
+                        <label class="form-label">Order By End Date</label>
+                        <select name="orderByEndDate" class="form-select">
+                            <option value="">Sort...</option>
+                            <option value="asc" selected="@(orderByEndDate == "asc" ? "selected" : null)">
+                                Oldest First (Ascending)
+                            </option>
+                            <option value="desc" selected="@(orderByEndDate == "desc" ? "selected" : null)">
+                                Newest First (Descending)
+                            </option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row-line">
+                    <div class="filter-field">
+                        <label class="form-label">Category</label>
+                        <select name="category" class="form-select">
+                            <option value="">All Categories</option>
+                            @foreach (var c in categories)
+                            {
+                                <option value="@c"
+                                    selected="@(string.Equals(c, selectedCategory, StringComparison.OrdinalIgnoreCase) ? "selected" : null)">
+                                    @c
+                                </option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="filter-field">
+                        <label class="form-label">Ended From</label>
+                        <input type="date" name="endFrom" value="@endFrom" class="form-control" />
+                    </div>
+
+                    <div class="filter-field">
+                        <label class="form-label">Ended To</label>
+                        <input type="date" name="endTo" value="@endTo" class="form-control" />
+                    </div>
+                </div>
+
+                <div class="row-line">
+                    <div class="filter-field">
+                        <label class="form-label">Location</label>
+                        <select name="location" class="form-select">
+                            <option value="">All Locations</option>
+                            @foreach (var loc in ViewBag.Locations as List<string> ?? new List<string>())
+                            {
+                                <option value="@loc"
+                                    selected="@(string.Equals(loc, location, StringComparison.OrdinalIgnoreCase) ? "selected" : null)">
+                                    @loc
+                                </option>
+                            }
+                        </select>
+                    </div>
+                    
+                    <div class="filter-field">
+                        <label class="form-label">Started From</label>
+                        <input type="date" name="fromDate" value="@fromDate" class="form-control" />
+                    </div>
+
+                    <div class="filter-field">
+                        <label class="form-label">Started To</label>
+                        <input type="date" name="toDate" value="@toDate" class="form-control" />
+                    </div>
+                </div>
+            
+                <div class="row-line action-button-row">
+                    <div class="button-group-wrapper">
+                        <button type="submit" class="btn btn-primary action-button-size">
+                            <i class="bi bi-funnel-fill me-1"></i> Apply Filters
+                        </button>
+                        <a asp-action="Archived" class="btn btn-outline-dark action-button-size">
+                            <i class="bi bi-x-circle-fill"></i> Clear
+                        </a>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        @if (Model == null || !Model.Any())
+        {
+            <div class="col-12">
+                <div class="alert alert-info text-center py-4 rounded-3 shadow-sm">
+                    <i class="bi bi-info-circle-fill me-2"></i> No archived events match the current filter criteria.
+                </div>
+            </div>
+        }
+        else
+        {
+            foreach (var ev in Model)
+            {
+                // Safely calculate days remaining until deletion, handling nullable EndDate
+                int daysRemaining = 0;
+                DateTime? deletionDate = null;
+
+                if (ev.EndDate.HasValue)
+                {
+                    // FIXED: Use .Value to access the DateTime and methods like AddDays() and ToLocalTime()
+                    deletionDate = ev.EndDate.Value.AddDays(daysUntilDeletion).ToLocalTime();
+                    daysRemaining = (deletionDate.Value.Date - DateTime.Now.ToLocalTime().Date).Days;
+                }
+
+                <div class="col-sm-6 col-lg-4">
+                    <div class="event-card">
+                        <a asp-action="AdminDetails" asp-route-id="@ev.Id" class="text-decoration-none text-dark">
+                            @if (!string.IsNullOrWhiteSpace(ev.MediaPath))
+                            {
+                                <img src="@ev.MediaPath" alt="@ev.Title" class="event-media" />
+                            }
+                            else
+                            {
+                                <div class="bg-light d-flex align-items-center justify-content-center" style="height:180px;">
+                                    <span class="text-muted"><i class="bi bi-image me-1"></i> No media available</span>
+                                </div>
+                            }
+                        </a>
+
+                        <div class="p-4">
+                            <a asp-action="AdminDetails" asp-route-id="@ev.Id" class="text-decoration-none">
+                                <h5 class="event-title mb-1" title="@ev.Title">@ev.Title</h5>
+                            </a>
+
+                            <div class="event-meta">
+                                <i class="bi bi-geo-alt-fill"></i> @(string.IsNullOrWhiteSpace(ev.Location) ? "Unspecified Location" : ev.Location)
+                                <span class="mx-1 text-muted">|</span>
+                                <span class="badge rounded-pill bg-secondary bg-opacity-10 text-dark">@ev.Category</span>
+                                <span class="badge rounded-pill bg-secondary bg-opacity-10 text-dark">@ev.Type</span>
+                            </div>
+
+                            <p class="event-description mb-3" title="@ev.Description">
+                                @(string.IsNullOrWhiteSpace(ev.Description) ? "No detailed description provided." : ev.Description)
+                            </p>
+
+                            <div class="mb-3">
+                                @if (ev.Hashtags?.Any() == true)
+                                {
+                                    @foreach (var h in ev.Hashtags.Take(3))
+                                    {
+                                        <span class="badge-hashtag">@h</span>
+                                    }
+                                    @if (ev.Hashtags.Count > 3)
+                                    {
+                                        <span class="badge-hashtag text-muted" title="@(string.Join(", ", ev.Hashtags))">+@(ev.Hashtags.Count - 3) more</span>
+                                    }
+                                }
+                            </div>
+
+                            @* === START OF IMPROVED DATE AND BUTTON SECTION === *@
+                            <div class="event-dates-container">
+                                <div class="date-column start-date">
+                                    <div class="date-label">Started:</div>
+                                    <div class="date-time-value">
+                                        <i class="bi bi-calendar-check-fill me-1"></i>
+                                        @ev.StartDate.ToLocalTime().ToString(dateFormat, culture)
+                                    </div>
+                                </div>
+                                
+                                <div class="date-column end-date">
+                                    <div class="date-label">Ended:</div>
+                                    <div class="date-time-value">
+                                        <i class="bi bi-calendar-x-fill me-1"></i>
+                                        @(ev.EndDate.HasValue ? ev.EndDate.Value.ToLocalTime().ToString(dateFormat, culture) : "Ongoing")
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="event-action-area">
+                                <a asp-action="AdminDetails" asp-route-id="@ev.Id" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-eye-fill me-1"></i> View Details
+                                </a>
+                            </div>
+                            @* === END OF IMPROVED DATE AND BUTTON SECTION === *@
+                            
+                            @if (ev.EndDate.HasValue)
+                            {
+                                <div class="pt-2 mt-2 border-top border-danger border-opacity-25">
+                                    <div class="event-meta mb-0 text-danger fw-bold">
+                                        <i class="bi bi-trash-fill me-1"></i>
+                                        @if (daysRemaining < 0)
+                                        {
+                                            <span class="text-danger">DELETED (over @(-daysRemaining) days ago)</span>
+                                        }
+                                        else if (daysRemaining <= 7)
+                                        {
+                                            <span class="text-danger">DELETING SOON! (@daysRemaining days left)</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-danger">Deletion in @daysRemaining days</span>
+                                        }
+                                    </div>
+                                    <div class="small-meta text-muted">Will be removed on @deletionDate.Value.ToString("dd MMM yyyy", culture)</div>
+                                </div>
+                            }
+                            </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-12 text-center back-button-wrapper">
+            <a asp-action="Index" class="btn action-button-size">
+                <i class="bi bi-arrow-left-circle-fill me-1"></i> Back to Active Events
+            </a>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">

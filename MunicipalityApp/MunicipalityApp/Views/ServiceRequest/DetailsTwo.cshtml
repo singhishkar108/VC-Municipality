@@ -1,0 +1,244 @@
+@model MunicipalityApp.Models.ServiceRequest
+@using System.Linq
+@{
+    ViewData["Title"] = "Service Request Details";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+@* --- Consolidated Styling Block --- *@
+<style>
+    :root {
+        --primary-blue: #004d9e;
+        --light-blue: #007ac3;
+        --dark-gray: #333;
+        --light-gray: #f2f2f2;
+        --border-color: #ddd;
+        --podium-blue: #0A2342;
+        /* Primary Admin/Header Color */
+        --view-details-blue: #3498db;
+        --dark-secondary: #495057;
+    }
+
+    /* Centralized Heading Style */
+    .form-header {
+        font-size: 2.25rem;
+        font-weight: 800;
+        color: var(--podium-blue);
+        margin-bottom: 0.25rem;
+    }
+
+    .form-subtitle {
+        font-size: 1rem;
+        color: #6c757d;
+        margin-bottom: 2.5rem;
+    }
+
+    /* Card/Panel Styling */
+    .detail-card {
+        background-color: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        /* Animation: subtle lift on hover */
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        /* Ensures all cards in the same row take equal height */
+        height: 100%;
+    }
+
+    .detail-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .detail-card h4 {
+        font-weight: 700;
+        color: var(--primary-blue);
+        border-bottom: 2px solid var(--light-gray);
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    /* Description Card - Used a specific style to make it stand out */
+    .description-card {
+        border-left: 5px solid var(--primary-blue);
+        background-color: var(--light-gray);
+        min-height: 150px;
+        /* Ensure visual space */
+    }
+
+    /* Definition List Styling */
+    .detail-list dt {
+        font-weight: 600;
+        color: var(--dark-secondary);
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        margin-bottom: 0;
+        border-bottom: 1px dashed var(--border-color);
+    }
+
+    .detail-list dd {
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        margin-bottom: 0;
+    }
+
+    /* Custom class to make the Location and Citizen cards fill the remaining height in their column */
+    .fill-height-card {
+        height: 100%;
+    }
+
+    /* Button Styling */
+    .btn-action {
+        font-size: 1rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn-action:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-back {
+        background-color: var(--dark-secondary);
+        border-color: var(--dark-secondary);
+    }
+
+    .status-display {
+        font-weight: 700;
+        color: var(--primary-blue);
+    }
+
+    .status-display.cancelled {
+        color: #e74c3c;
+    }
+
+    /* Styling for the full-width back button section */
+    .back-button-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 2.5rem 1.5rem;
+        /* Increased vertical padding for space */
+        margin-bottom: 2rem;
+        background-color: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .back-button-container:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-back.full-width {
+        width: 80%;
+        max-width: 400px;
+    }
+</style>
+
+<div class="container mt-5">
+    @* --- Centralized Heading --- *@
+    <div class="text-center mb-5">
+        <h1 class="form-header"><i class="bi bi-file-earmark-bar-graph me-2"></i> @ViewData["Title"]</h1>
+    </div>
+
+    @* --- Top Section: Request and Location Details (Equal Height Row) --- *@
+    <div class="row d-flex align-items-stretch">
+        @* Request Details Card - Col 1 (6 columns) *@
+        <div class="col-lg-6 d-flex">
+            <div class="detail-card animate__animated animate__fadeInLeft">
+                <h4><i class="bi bi-info-circle me-2"></i> Request Details</h4>
+                <dl class="row detail-list" data-request-id="@Model.RequestID">
+
+                    <dt class="col-sm-4">Title:</dt>
+                    <dd class="col-sm-8">@Model.Title</dd>
+
+                    <dt class="col-sm-4">Service Type:</dt>
+                    <dd class="col-sm-8">@Model.ServiceType</dd>
+
+                    <dt class="col-sm-4">Status:</dt>
+                    <dd class="col-sm-8">@Model.Status</dd>
+
+                    <dt class="col-sm-4">Priority Level:</dt>
+                    <dd class="col-sm-8">
+                        @Model.PriorityLevel (@(Model.PriorityLevel == 5 ? "Highest" : Model.PriorityLevel == 1 ?
+                        "Lowest" : ""))
+                    </dd>
+
+                    <dt class="col-sm-4">Assigned Department:</dt>
+                    <dd class="col-sm-8">@Model.AssignedDepartment</dd>
+
+                    <dt class="col-sm-4">Date Requested:</dt>
+                    <dd class="col-sm-8">@Model.DateRequested.ToString("yyyy-MM-dd HH:mm")</dd>
+
+                    <dt class="col-sm-4">Completed Date:</dt>
+                    <dd class="col-sm-8" id="completedDateDisplay">
+                        @if (Model.Status == "Cancelled")
+                        {
+                            <span class="status-display cancelled"><i class="bi bi-x-circle me-1"></i> Request
+                                Cancelled</span>
+                        }
+                        else
+                        {
+                            <span class="status-display">@(Model.CompletedDate.HasValue ?
+                                                        Model.CompletedDate.Value.ToString("yyyy-MM-dd HH:mm") : "N/A")</span>
+                        }
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        @* Location Details - Col 2 (6 columns) *@
+        <div class="col-lg-6 d-flex">
+            <div class="detail-card fill-height-card animate__animated animate__fadeInRight">
+                <h4><i class="bi bi-geo-alt-fill me-2"></i> Location Details</h4>
+                <dl class="row detail-list">
+                    <dt class="col-sm-4">Street Number:</dt>
+                    <dd class="col-sm-8">@Model.StreetNumber</dd>
+                    <dt class="col-sm-4">Address Line 2:</dt>
+                    <dd class="col-sm-8">@Model.StreetAddressLine2</dd>
+                    <dt class="col-sm-4">Suburb:</dt>
+                    <dd class="col-sm-8">@Model.Suburb</dd>
+                    <dt class="col-sm-4">City:</dt>
+                    <dd class="col-sm-8">@Model.City</dd>
+                    <dt class="col-sm-4">Postal Code:</dt>
+                    <dd class="col-sm-8">@Model.PostalCode</dd>
+                    @* <dt class="col-sm-4">Coordinates:</dt>
+                    <dd class="col-sm-8">Lat: @Model.Latitude, Lon: @Model.Longitude</dd> *@
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    @* --- Middle Section: Description (Full Width) --- *@
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="detail-card description-card animate__animated animate__fadeInUp">
+                <h4><i class="bi bi-file-earmark-text-fill me-2"></i> Description</h4>
+                <p>@Model.Description</p>
+            </div>
+        </div>
+    </div>
+
+    @* --- Bottom Section: Back Button (Full Width) --- *@
+    <div class="row mt-3 mb-5">
+        <div class="col-12">
+            <div class="back-button-container animate__animated animate__fadeInUp">
+                <a asp-action="Dashboard" asp-controller="ServiceRequest"
+                    class="btn btn-action btn-secondary btn-back full-width text-white">
+                    <i class="bi bi-arrow-left me-2"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* NOTE: The scripts section was removed as it was not needed for a read-only view. *@

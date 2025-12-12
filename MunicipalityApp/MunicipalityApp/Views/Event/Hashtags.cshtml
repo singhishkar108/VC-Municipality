@@ -1,0 +1,293 @@
+@model List<MunicipalityApp.Models.Event>
+@using System.Globalization;
+@using MunicipalityApp.Services;
+
+@{
+    // The ViewData title can be dynamically set by the Controller (e.g., "#myhashtag")
+    // but a default descriptive title is kept here.
+    ViewData["Title"] = "Events by Hashtag"; 
+    
+    // The event/announcement toggle and filters are ignored for this view.
+    string dateFormat = "dd MMM yyyy, HH:mm";
+    var culture = CultureInfo.InvariantCulture;
+
+    // The relevant CSS styles for cards and related elements are kept.
+}
+
+<style>
+    /* CSS variables and general styles */
+    :root {
+        --primary-blue: #004d9e;
+        --light-blue: #007ac3;
+        --dark-gray: #2c3e50;
+        --light-gray: #ecf0f1;
+        --subtle-gray: #bdc3c7;
+        --podium-blue: #0A2342;
+        --shadow-elevation-2: 0 4px 12px rgba(0, 0, 0, 0.08);
+        --transition-speed: 0.3s;
+    }
+
+    /* General Layout */
+    body {
+        background-color: #f7f9fc;
+    }
+
+    .events-container {
+        padding: 2rem 0;
+    }
+
+    /* --- PAGE HEADER STYLES --- */
+    .page-header-admin {
+        padding: 1.5rem 0 2rem 0;
+        text-align: center;
+    }
+
+    .page-header-admin h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--dark-gray);
+        margin-bottom: 0.5rem;
+    }
+
+    .page-header-admin p {
+        font-size: 1rem;
+        color: #777;
+        font-style: italic;
+    }
+
+    /* Standard Event Card Styles (Keeping for context) */
+    .event-card {
+        border-radius: 12px;
+        overflow: hidden;
+        border: none;
+        box-shadow: 0 6px 18px rgba(15, 23, 42, .08);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .event-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(15, 23, 42, .15);
+    }
+
+    .event-media {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+        display: block;
+        filter: brightness(0.95);
+    }
+
+    .event-title {
+        font-weight: 700;
+        color: var(--podium-blue);
+        font-size: 1.25rem;
+        line-height: 1.4;
+        max-height: 2.8em;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    .event-meta {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+    }
+
+    .event-description {
+        font-size: 0.95rem;
+        color: var(--dark-gray);
+        line-height: 1.4;
+        max-height: 4.2em;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+    }
+
+    .badge-hashtag {
+        background-color: var(--light-gray);
+        color: var(--primary-blue);
+        padding: 0.3em 0.6em;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        margin-right: 4px;
+        margin-top: 4px;
+        display: inline-block;
+        white-space: nowrap;
+    }
+    
+    /* Specific styling for the yellow announcement badge to ensure text contrast */
+    .bg-warning-custom {
+        background-color: #ffc107 !important; /* Standard Bootstrap warning yellow */
+        color: #212529 !important; /* Dark text for contrast */
+    }
+
+    /* Archived Button Style (Modified to be full-width of its container) */
+    .archived-button-wrapper {
+        max-width: 100%;
+        margin: 0 auto;
+        display: flex;
+        justify-content: center;
+    }
+
+    .archived-button {
+        background-color: var(--light-blue);
+        border-color: var(--light-blue);
+        color: white;
+        font-weight: 600;
+        padding: 0.8rem 2rem;
+        border-radius: 8px;
+        transition: background-color var(--transition-speed);
+        width: 100%; 
+        max-width: 400px;
+    }
+
+    .archived-button:hover {
+        color: white;
+        background-color: var(--primary-blue);
+        border-color: var(--primary-blue);
+    }
+
+</style>
+
+<div class="container events-container">
+
+    <div class="row">
+        <div class="col-12 page-header-admin">
+            @* The actual hashtag being searched should be passed in via ViewBag/ViewData and used here.
+               Assuming it is available as ViewBag.Hashtag for display. *@
+            <h1>@ViewBag.CurrentHashtag</h1>
+            @* <h1>@ViewData["Title"]</h1> *@
+            <p>@ViewData["Title"]</p>
+            <p>Events and Announcements associated with the hashtag: @ViewBag.CurrentHashtag</p>
+        </div>
+    </div>
+
+    @* Filters and Carousel are intentionally excluded here. *@
+
+    <div class="row g-4">
+        @if (Model == null || !Model.Any())
+        {
+            <div class="col-12">
+                <div class="alert alert-info text-center py-4 rounded-3 shadow-sm">
+                    <i class="bi bi-info-circle-fill me-2"></i> No events or announcements were found for this hashtag.
+                </div>
+            </div>
+        }
+        else
+        {
+            @* The foreach loop for the event cards is preserved as is. *@
+            foreach (var ev in Model)
+            {
+                <div class="col-sm-6 col-lg-4">
+                    <div class="event-card">
+                        <a asp-action="AdminDetails" asp-route-id="@ev.Id" class="text-decoration-none text-dark">
+                            @if (!string.IsNullOrWhiteSpace(ev.MediaPath))
+                            {
+                                <img src="@ev.MediaPath" alt="@ev.Title" class="event-media" />
+                            }
+                            else
+                            {
+                                <div class="bg-light d-flex align-items-center justify-content-center" style="height:180px;">
+                                    <span class="text-muted"><i class="bi bi-image me-1"></i> No media available</span>
+                                </div>
+                            }
+                        </a>
+
+                        <div class="p-4">
+                            @{
+                                // LOGIC CHANGE: Use bg-warning-custom for Announcement
+                                string itemType = ev.Type?.ToString() ?? "Event"; // Fallback to "Event"
+                                string typeDisplay = itemType.Equals(EventService.EventTypes.Announcement, StringComparison.OrdinalIgnoreCase) ? "Announcement" : "Event";
+                                string typeClass = typeDisplay.Equals("Announcement") ? "bg-warning-custom" : "bg-primary";
+                                string typeIcon = typeDisplay.Equals("Announcement") ? "bi-megaphone-fill" : "bi-calendar-event-fill";
+                            }
+                            @* START: New Type Badge in Main Card (Always visible) *@
+                            <div class="mb-2">
+                                <span class="badge rounded-pill @typeClass p-2 text-white">
+                                    <i class="bi @typeIcon me-1"></i> @typeDisplay
+                                </span>
+                            </div>
+                            @* END: New Type Badge in Main Card *@
+
+                            <a asp-action="AdminDetails" asp-route-id="@ev.Id" class="text-decoration-none">
+                                <h5 class="event-title mb-1" title="@ev.Title">@ev.Title</h5>
+                            </a>
+
+                            <div class="event-meta">
+                                @if (typeDisplay == "Event")
+                                {
+                                    // Only events have a location
+                                    <i class="bi bi-geo-alt-fill"></i> @(string.IsNullOrWhiteSpace(ev.Location) ? "Unspecified Location" : ev.Location)
+                                    <span class="mx-1 text-muted">|</span>
+                                }
+                                <span class="badge rounded-pill bg-secondary bg-opacity-10 text-dark">@ev.Category</span>
+                            </div>
+
+                            <p class="event-description mb-3" title="@ev.Description">
+                                @(string.IsNullOrWhiteSpace(ev.Description) ? "No detailed description provided." : ev.Description)
+                            </p>
+
+                            <div class="mb-3">
+                                @if (ev.Hashtags?.Any() == true)
+                                {
+                                    @foreach (var h in ev.Hashtags.Take(3))
+                                    {
+                                        <span class="badge-hashtag">@h</span>
+                                    }
+                                    @if (ev.Hashtags.Count > 3)
+                                    {
+                                        <span class="badge-hashtag text-muted" title="@(string.Join(", ", ev.Hashtags))">+@(ev.Hashtags.Count - 3) more</span>
+                                    }
+                                }
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                @* LOGIC CHANGE: Show start date/time for Events, or Posted time for Announcements *@
+                                @if (typeDisplay == "Event")
+                                {
+                                    <div>
+                                        <div class="event-meta mb-0">Starts:</div>
+                                        <div class="fw-bold text-success">
+                                            <i class="bi bi-calendar-event me-1"></i>
+                                            @ev.StartDate.ToLocalTime().ToString(dateFormat, culture)
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div>
+                                        <div class="event-meta mb-0">Posted:</div>
+                                        <div class="fw-bold text-info">
+                                            <i class="bi bi-clock-history me-1"></i>
+                                            @ev.StartDate.ToLocalTime().ToString(dateFormat, culture)
+                                        </div>
+                                    </div>
+                                }
+                                <div class="text-end">
+                                    <a asp-action="AdminDetails" asp-route-id="@ev.Id" class="btn btn-sm btn-primary">
+                                        View Details
+                                    </a>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-12 text-center archived-button-wrapper">
+            <a asp-action="Archived" class="btn archived-button">
+                <i class="bi bi-archive-fill me-2"></i> View Archived Items
+            </a>
+        </div>
+    </div>
+</div>

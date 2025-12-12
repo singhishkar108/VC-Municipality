@@ -1,0 +1,15 @@
+[
+  {
+    "Id": "a4c32491-fed5-41ec-b4aa-47b08b0d3f44",
+    "Title": "qwerty",
+    "Description": "qwerty",
+    "Location": "CPT",
+    "Username": "Admin123",
+    "MediaPath": "/uploads/posts/f3800ad4-a617-480d-88c5-e409d5db40a9.png",
+    "Hashtags": [],
+    "Likes": 0,
+    "Timestamp": "2025-10-14T20:54:45.5292125Z",
+    "ShareUrl": "http://localhost:5170/Blog/ViewPost/680e1989-3cf1-49e2-8843-2a3c6333afe7",
+    "LikedBy": []
+  }
+]

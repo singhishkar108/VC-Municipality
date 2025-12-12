@@ -1,0 +1,171 @@
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+@{
+    var username = HttpContextAccessor.HttpContext.Session.GetString("Username");
+    var role = HttpContextAccessor.HttpContext.Session.GetString("Role"); // Assuming role check
+    var bodyClass = "";
+    if (ViewData["IsLoginPage"] != null && (bool)ViewData["IsLoginPage"])
+    {
+        bodyClass = "login-page-body";
+    }
+}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - MunicipalServiceApp</title>
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/MunicipalServiceApp.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
+
+    @RenderSection("HeadContent", required: false) @* <--- FIX: Renders the custom HeadContent section *@
+</head>
+
+<body class="bg-light-gray @bodyClass">
+    <div class="top-bar d-none d-md-block">
+        <div class="container-fluid d-flex justify-content-end align-items-center">
+            @if (string.IsNullOrEmpty(username))
+            {
+                <a class="text-white text-decoration-none px-2 py-1" asp-controller="Auth" asp-action="Login">Login</a>
+                <a class="text-white text-decoration-none px-2 py-1" asp-controller="Auth"
+                    asp-action="Register">Register</a>
+            }
+            else
+            {
+                <a class="text-white text-decoration-none px-2 py-1 me-2">Welcome, @username</a>
+                <a class="btn btn-sm btn-light btn-logout" asp-controller="Auth" asp-action="Logout">Logout</a>
+            }
+        </div>
+    </div>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom box-shadow mb-3">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    <img src="~/images/VCPailityVBNew.png" alt="Municipal Service App Logo" style="height: 40px;">
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                    aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between main-nav">
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="AboutUs">About
+                                Us</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy
+                                Policy</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="container-fluid main-content">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+    <footer class="footer bg-dark">
+        <div class="container-fluid text-center text-md-start">
+            <div class="row justify-content-between">
+                <div class="col-md-3 mb-4 mb-md-0 text-center">
+                    <img src="~/images/VCLogo.png" alt="KCMO White Logo" style="height: 120px;"
+                        class="d-block mx-auto mb-2">
+                    <p class="mt-2">&copy; 2025 - VC Municipality</p>
+                </div>
+                <div class="col-md-3 mb-4 mb-md-0 text-center">
+                    <h5 class="text-uppercase mb-4">Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-white text-decoration-none">About Us</a></li>
+                        <li><a href="#" class="text-white text-decoration-none">Contact Us</a></li>
+                        <li><a href="#" class="text-white text-decoration-none">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4 mb-md-0 text-center">
+                    <h5 class="text-uppercase mb-4">Physical Address</h5>
+                    <p>1 Link Road <br> Cnr St James Avenue & Link Rd<br>Westville, Durban<br>3630</p>
+                </div>
+                <div class="col-md-3 mb-4 mb-md-0 text-center">
+                    <h5 class="text-uppercase mb-4">We are on</h5>
+                    <div class="social-icons">
+                        <a href="#" class="text-white me-3"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-white me-3"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-white me-3"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-white"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+    <style>
+        header {
+            position: relative;
+            z-index: 1030;
+        }
+
+        .footer a:hover,
+        .social-icons a:hover {
+            color: #004d9e !important;
+        }
+
+        /* Custom styles for the Logout button */
+        .btn-logout {
+            color: #004d9e !important;
+            background-color: white !important;
+            border-color: white !important;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            padding: 5px 1px;
+            /* Adjust these values to make the button smaller */
+            font-size: 0.875rem;
+            /* Adjust font size */
+        }
+
+        .btn-logout:hover {
+            color: white !important;
+            background-color: #004d9e !important;
+            border-color: #004d9e !important;
+        }
+    </style>
+    <script>
+        $(document).ready(function () {
+            var successMessage = '@TempData["SuccessMessage"]';
+            var errorMessage = '@TempData["ErrorMessage"]';
+            var logoutMessage = '@TempData["LogoutMessage"]';
+            var loginErrorToastr = '@TempData["LoginErrorToastr"]';
+            var registrationSuccessMessage = '@TempData["RegistrationSuccessMessage"]';
+            if (successMessage.length > 0) {
+                toastr.success(successMessage);
+            }
+            if (errorMessage.length > 0) {
+                toastr.error(errorMessage);
+            }
+            if (logoutMessage.length > 0) {
+                toastr.success(logoutMessage);
+            }
+            if (loginErrorToastr.length > 0) {
+                toastr.error(loginErrorToastr);
+            }
+            // New check for registration success message
+            if (registrationSuccessMessage.length > 0) {
+                toastr.success(registrationSuccessMessage);
+            }
+        });
+    </script>
+</body>
+
+</html>

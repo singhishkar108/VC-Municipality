@@ -1,0 +1,399 @@
+@model MunicipalityApp.Models.Event
+
+@{
+    ViewData["Title"] = "Create Item";
+    var categories = ViewBag.Categories as List<string> ?? new List<string>();
+    var locations = ViewBag.Locations as List<string> ?? new List<string>();
+}
+
+<style>
+    /* --- CSS Variables (Matching Admin Index) --- */
+    :root {
+        --primary-blue: #004d9e;
+        /* Main Brand Color (Used for selected box and unselected text) */
+        --light-blue: #007ac3;
+        /* Hover Color */
+        --dark-gray: #2c3e50;
+        /* Primary Text */
+        --light-gray: #ecf0f1;
+        /* Background & Input */
+        --subtle-gray: #bdc3c7;
+        /* Subtle Borders/Text */
+        --podium-blue: #0A2342;
+        /* Header Color */
+        --shadow-elevation-2: 0 4px 12px rgba(0, 0, 0, 0.08);
+        --transition-speed: 0.3s;
+    }
+
+    body {
+        background-color: #f7f9fc;
+        /* Light, clean background */
+    }
+
+    .blog-post-container {
+        padding: 2rem 0;
+        animation: fadeIn var(--transition-speed) ease-out;
+    }
+
+    /* --- Form Card Styling --- */
+    .form-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        padding: 3rem;
+        transition: box-shadow var(--transition-speed) ease;
+    }
+
+    .form-card:hover {
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+    }
+
+    /* --- Typography and Header --- */
+    .form-header {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--podium-blue);
+        margin-bottom: 0.5rem;
+        text-align: center;
+    }
+
+    .form-subtitle {
+        font-size: 1.1rem;
+        color: #6c757d;
+        margin-bottom: 2rem;
+        text-align: center;
+        max-width: 650px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* --- Form Inputs --- */
+    .form-label {
+        font-weight: 600;
+        color: var(--dark-gray);
+        margin-bottom: 0.4rem;
+    }
+
+    .form-control,
+    .form-select {
+        background-color: var(--light-gray);
+        border: 1px solid var(--subtle-gray);
+        border-radius: 8px;
+        height: 48px;
+        font-size: 1rem;
+        transition: all var(--transition-speed) ease;
+        padding: 0.75rem 1rem;
+    }
+
+    textarea.form-control {
+        height: auto;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        background-color: white;
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 0.25rem rgba(0, 77, 158, 0.25);
+    }
+
+    input[type="file"].form-control {
+        height: auto;
+        padding: 0.5rem 1rem;
+    }
+
+    .small-help {
+        font-size: 0.8rem;
+        color: var(--subtle-gray);
+        margin-top: 0.25rem;
+    }
+
+    /* --- Buttons --- */
+    .btn {
+        border-radius: 8px;
+        font-weight: 600;
+        padding: 0.75rem 1.5rem;
+        transition: all 0.2s ease;
+    }
+
+    .btn-submit {
+        background-color: var(--primary-blue);
+        border-color: var(--primary-blue);
+    }
+
+    .btn-submit:hover {
+        background-color: var(--light-blue);
+        border-color: var(--light-blue);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-secondary {
+        background-color: var(--subtle-gray);
+        border-color: var(--subtle-gray);
+        color: var(--dark-gray);
+    }
+
+    .btn-secondary:hover {
+        background-color: #95a5a5;
+        border-color: #95a5a5;
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    /* --- Toggle Switch Styling (Slider with White Background and Blue Text) --- */
+    .toggle-switch-container {
+        position: relative;
+        display: flex;
+        width: 100%;
+        max-width: 400px;
+        height: 50px;
+        background-color: white;
+        border: 1px solid var(--subtle-gray);
+        border-radius: 10px;
+        padding: 4px;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1rem;
+    }
+
+    .toggle-switch-label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 1;
+        cursor: pointer;
+        z-index: 2;
+        color: var(--primary-blue);
+        font-weight: 600;
+        transition: color var(--transition-speed);
+        padding: 0 10px;
+        height: 100%;
+        font-size: 0.95rem;
+        background-color: transparent;
+    }
+
+    .toggle-switch-radio {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .toggle-slider {
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        width: calc(50% - 4px);
+        height: calc(100% - 8px);
+        background-color: var(--primary-blue);
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+        transition: transform var(--transition-speed) cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        z-index: 1;
+    }
+
+    #type_announcement:checked~.toggle-slider {
+        transform: translateX(100%);
+    }
+
+    #type_event:checked+.toggle-switch-label,
+    #type_announcement:checked+.toggle-switch-label {
+        color: white;
+    }
+
+    /* --- Animation Keyframes --- */
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(15px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Added icon styling */
+    .bi {
+        vertical-align: -0.125em;
+    }
+</style>
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+
+<div class="row justify-content-center blog-post-container">
+    <div class="col-lg-9 col-md-11">
+
+        <div class="d-flex justify-content-end mb-3">
+            <a asp-action="AdminIndex" class="btn btn-secondary action-button-size">
+                <i class="bi bi-arrow-left-circle-fill me-1"></i> Back to List
+            </a>
+        </div>
+
+        <div class="text-center mb-5">
+            <h1 class="form-header" id="form-header-title">
+                <i class="bi bi-calendar-check me-2"></i> Submit New Community Event/Announcement
+            </h1>
+            <p class="form-subtitle">Formalize event details and announcements for public distribution. All required
+                fields are marked with an asterisk (*).</p>
+        </div>
+
+
+        <div class="form-card">
+            <form asp-action="Create" method="post" enctype="multipart/form-data">
+                @* <div asp-validation-summary="All" class="text-danger mb-4 p-3 border border-danger rounded"></div> *@
+
+                <div class="mb-4 form-group">
+                    <label asp-for="Title" class="form-label">Title <span class="text-danger">*</span></label>
+                    <input asp-for="Title" class="form-control"
+                        placeholder="Enter a descriptive title for the event/announcement" required />
+                    <span asp-validation-for="Title" class="text-danger small-help"></span>
+                </div>
+
+                <div class="mb-4 form-group">
+                    <label asp-for="Description" class="form-label">Description <span
+                            class="text-danger">*</span></label>
+                    <textarea asp-for="Description" class="form-control" rows="5"
+                        placeholder="Describe the event details, agenda, and target audience..." required></textarea>
+                    <span asp-validation-for="Description" class="text-danger small-help"></span>
+                </div>
+
+                <div class="mb-4 form-group">
+                    <label class="form-label">Item Type <span class="text-danger">*</span></label>
+                    <div class="toggle-switch-container">
+                        <input type="radio" id="type_event" asp-for="Type" value="Event" class="toggle-switch-radio"
+                            checked="@(string.IsNullOrEmpty(Model?.Type) || Model.Type.Equals("Event", StringComparison.OrdinalIgnoreCase))"
+                            required>
+                        <label for="type_event" class="toggle-switch-label">Event</label>
+
+                        <input type="radio" id="type_announcement" asp-for="Type" value="Announcement"
+                            class="toggle-switch-radio"
+                            checked="@(Model?.Type != null && Model.Type.Equals("Announcement", StringComparison.OrdinalIgnoreCase))"
+                            required>
+                        <label for="type_announcement" class="toggle-switch-label">Announcement</label>
+
+                        <span class="toggle-slider"></span>
+                    </div>
+                    <span asp-validation-for="Type" class="text-danger small-help"></span>
+                    <div class="small-help">Toggle between submitting a structured Community Event or a simple
+                        Announcement/Alert.</div>
+                </div>
+
+
+                <div class="row">
+                    <div class="col-md-6 mb-4 form-group">
+                        <label class="form-label">Category <span class="text-danger">*</span></label>
+                        <select asp-for="Category" class="form-select" required>
+                            <option value="">-- Select Category --</option>
+                            @foreach (var c in categories)
+                            {
+                                <option value="@c"
+                                    selected="@(string.Equals(c, Model?.Category, StringComparison.OrdinalIgnoreCase))">@c
+                                </option>
+                            }
+                        </select>
+                        <span asp-validation-for="Category" class="text-danger small-help"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-4 form-group">
+                        <label asp-for="Location" class="form-label">Location <span class="text-danger">*</span></label>
+                        <select asp-for="Location" class="form-select" required>
+                            <option value="">-- Select Location --</option>
+                            @foreach (var loc in locations)
+                            {
+                                <option value="@loc"
+                                    selected="@(string.Equals(loc, Model?.Location, StringComparison.OrdinalIgnoreCase))">
+                                    @loc</option>
+                            }
+                        </select>
+                        <span asp-validation-for="Location" class="text-danger small-help"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-4 form-group">
+                        <label asp-for="StartDate" class="form-label">Start Date & Time <span
+                                class="text-danger">*</span></label>
+                        <input asp-for="StartDate" type="datetime-local" class="form-control" step="60" required />
+                        <span asp-validation-for="StartDate" class="text-danger small-help"></span>
+                        <div class="small-help">Stored as UTC; shown in local time where appropriate.</div>
+                    </div>
+
+                    <div class="col-md-6 mb-4 form-group">
+                        <label asp-for="EndDate" class="form-label">End Date & Time</label>
+                        <input asp-for="EndDate" type="datetime-local" class="form-control" step="60" />
+                        <span asp-validation-for="EndDate" class="text-danger small-help"></span>
+                    </div>
+                </div>
+
+                <div class="mb-4 form-group">
+                    <label class="form-label">Media Attachment (Optional)</label>
+                    <small class="text-muted d-block mb-2">Allowed file types: `.jpg`, `.jpeg`, `.png`, `.gif`, `.mp4`,
+                        `.avi`, `.mov`, `.mkv`</small>
+                    <input type="file" name="media" class="form-control"
+                        accept=".jpg,.jpeg,.png,.gif,.mp4,.avi,.mov,.mkv" />
+                    <span
+                        class="text-danger small-help">@ViewData.ModelState["MediaPath"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+                </div>
+
+                <div class="mb-5 form-group">
+                    <label class="form-label">Hashtags (Comma Separated)</label>
+                    <input type="text" name="hashtags" class="form-control"
+                        placeholder="e.g., #community, #free, #marketday" />
+                    <div class="small-help">Hashtags improve searchability on the main index.</div>
+                </div>
+
+                <div class="d-grid gap-3">
+                    <button type="submit" class="btn btn-primary btn-submit" id="submit-button">
+                        <i class="bi bi-save-fill me-1"></i> Create Event
+                    </button>
+                    <a asp-action="AdminIndex" class="btn btn-secondary">
+                        <i class="bi bi-x-circle-fill me-1"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.PartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const formHeader = document.getElementById('form-header-title');
+            const submitButton = document.getElementById('submit-button');
+            const eventRadio = document.getElementById('type_event');
+            const announcementRadio = document.getElementById('type_announcement');
+
+            function updateUI(type) {
+                if (type === 'Event') {
+                    formHeader.innerHTML = '<i class="bi bi-calendar-check me-2"></i> Submit New Community Event';
+                    submitButton.innerHTML = '<i class="bi bi-save-fill me-1"></i> Create Event';
+                } else if (type === 'Announcement') {
+                    formHeader.innerHTML = '<i class="bi bi-megaphone-fill me-2"></i> Submit New Announcement/Alert';
+                    submitButton.innerHTML = '<i class="bi bi-save-fill me-1"></i> Create Announcement';
+                }
+            }
+
+            // Initial UI update based on default or existing model value
+            if (eventRadio.checked) {
+                updateUI('Event');
+            } else if (announcementRadio.checked) {
+                updateUI('Announcement');
+            } else {
+                // If neither is checked (e.g. Model.Type is null/empty), default to 'Event' and check the radio
+                eventRadio.checked = true;
+                updateUI('Event');
+            }
+
+            // Event listeners for change
+            eventRadio.addEventListener('change', () => updateUI('Event'));
+            announcementRadio.addEventListener('change', () => updateUI('Announcement'));
+        });
+    </script>
+}

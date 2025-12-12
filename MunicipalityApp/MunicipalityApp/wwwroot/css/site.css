@@ -1,0 +1,434 @@
+/*
+    KCMO.gov-inspired styling.
+    This CSS file provides a modern, clean look with a professional color palette.
+*/
+
+:root {
+    --kc-blue: #004d9e;
+    --kc-light-blue: #007ac3;
+    --kc-dark-gray: #333;
+    --kc-light-gray: #f2f2f2;
+    --kc-text: #555;
+    --kc-border: #ddd;
+}
+
+/* Custom font styles */
+body {
+    font-family: 'Inter', sans-serif;
+    color: var(--kc-text);
+    background-color: var(--kc-light-gray);
+    line-height: 1.6;
+}
+
+/* Custom header and navigation styles */
+.navbar {
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.top-bar {
+    background-color: var(--kc-blue);
+    color: white;
+    font-size: 0.8rem;
+}
+
+.top-bar a {
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    background-color: var(--kc-blue);
+    border: 1px solid var(--kc-blue);
+    color: white;
+    text-decoration: none;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.top-bar a:hover {
+    background-color: var(--kc-light-blue);
+    transform: translateY(-2px);
+}
+
+.main-nav .nav-link {
+    color: var(--kc-dark-gray) !important;
+    font-weight: 500;
+    padding: 1rem 1.25rem;
+    border-bottom: 3px solid transparent;
+    transition: border-bottom 0.3s ease, color 0.3s ease;
+}
+
+.main-nav .nav-link:hover {
+    color: var(--kc-light-blue) !important;
+    border-bottom: 3px solid var(--kc-light-blue);
+}
+
+/* Hero Section */
+.hero-banner {
+    background: linear-gradient(to right, #004d9e, #007ac3);
+    color: white;
+    padding: 3rem 1rem;
+    text-align: center;
+}
+
+/* Main content and button styles */
+.main-content {
+    padding: 2rem 0;
+}
+
+.btn-primary {
+    background-color: var(--kc-blue);
+    border-color: var(--kc-blue);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-radius: 0.5rem;
+    padding: 1.25rem 1rem;
+}
+
+.btn-primary:hover {
+    background-color: var(--kc-light-blue);
+    border-color: var(--kc-light-blue);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn-secondary {
+    background-color: var(--kc-dark-gray);
+    border-color: var(--kc-dark-gray);
+    color: white;
+    border-radius: 0.5rem;
+    padding: 1.25rem 1rem;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.btn-block {
+    display: block;
+    width: 100%;
+}
+
+/* Footer styles */
+.footer {
+    background-color: black;
+    color: white;
+    padding: 2rem 0;
+}
+
+.footer a {
+    color: var(--kc-light-blue);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer a:hover {
+    color: #004d9e;
+}
+
+.social-icons a {
+    color: white;
+    font-size: 1.5rem;
+    margin: 0 0.5rem;
+}
+
+.social-icons a:hover {
+    color: #004d9e;
+}
+
+/* Utility classes for layout from your images */
+.center-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.card-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+/* Animation Keyframes */
+@keyframes fadeInSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes zoomIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* New Section and Card Styles */
+.featured-section {
+    padding: 3rem 0;
+}
+
+.featured-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.featured-cards-container {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.featured-card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    animation: fadeInSlideUp 0.8s ease-out forwards;
+    opacity: 0;
+}
+
+.featured-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+}
+
+.featured-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.featured-card-body {
+    padding: 1.5rem;
+}
+
+.featured-card h4 {
+    color: #004d9e;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.featured-card p {
+    color: #6c757d;
+}
+
+/* Animations applied to elements */
+.main-content h2,
+.main-content p.mb-4 {
+    animation: fadeInSlideUp 0.8s ease-out forwards;
+    opacity: 0;
+}
+
+.featured-section h3 {
+    animation: fadeInSlideUp 0.8s ease-out forwards;
+    opacity: 0;
+}
+
+/* Corrected color for all titles and text */
+.main-content h2,
+.main-content p.mb-4,
+.featured-section h3 {
+    color: #000;
+}
+
+.card-item {
+    background-color: white;
+    border: 1px solid var(--kc-border);
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    padding: 1.5rem;
+    text-align: center;
+    animation: fadeInSlideUp 0.8s ease-out forwards;
+    opacity: 0;
+}
+
+.card-item .icon-circle {
+    background-color: transparent;
+    border: 5px solid #004d9e;
+    border-radius: 50%;
+    width: 120px;
+    height: 120px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto 1rem;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.card-item .icon-circle img {
+    height: 60px;
+    width: auto;
+    transition: filter 0.3s ease;
+    filter: invert(0);
+}
+
+.card-item:hover .icon-circle {
+    background-color: #004d9e;
+    border-color: #004d9e;
+}
+
+.card-item:hover .icon-circle img {
+    filter: brightness(0) invert(1);
+}
+
+/* Video and Image Overlay */
+.video-container {
+    position: relative;
+    width: 100%;
+    height: 80vh;
+    overflow: hidden;
+}
+
+.video-background {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: translate(-50%, -50%);
+}
+
+.video-overlay-image {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 40%;
+    height: auto;
+    z-index: 2;
+}
+
+/* Content Overlap */
+.main-content {
+    background-color: var(--kc-light-gray);
+    margin-top: -50px;
+    position: relative;
+    z-index: 1;
+}
+
+/* Login Page Specific Styles */
+.login-content-wrapper {
+    position: relative;
+    min-height: calc(125vh - 200px); /* Adjust based on your header/footer height */
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-background-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 108%;
+    overflow: hidden;
+    z-index: -1;
+}
+
+.login-video-background {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.login-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.login-card-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+    z-index: 1;
+}
+
+/* Updated Login Card Styling */
+.login-card {
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+.logo-on-login {
+    width: 100px;
+    margin-bottom: 1rem;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+}
+
+/* Login Page Animations */
+@keyframes slideInFromTop {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.animated-wrapper {
+    animation: fadeIn 1s ease-out forwards;
+}
+
+.animated-card {
+    animation: slideInFromTop 0.8s ease-out forwards;
+    animation-delay: 0.5s;
+    opacity: 0;
+}
+
+.animated-alert {
+    animation: fadeIn 0.5s ease-out forwards;
+    animation-delay: 1.3s;
+    opacity: 0;
+}
+
+.animated-form {
+    animation: fadeIn 0.8s ease-out forwards;
+    animation-delay: 1.5s;
+    opacity: 0;
+}
+
+.animated-btn {
+    animation: fadeIn 0.8s ease-out forwards;
+    animation-delay: 1.7s;
+    opacity: 0;
+}
+
+.animated-link {
+    animation: fadeIn 0.8s ease-out forwards;
+    animation-delay: 1.9s;
+    opacity: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .top-bar {
+        display: none;
+    }
+}

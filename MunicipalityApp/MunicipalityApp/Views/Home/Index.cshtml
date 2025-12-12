@@ -1,0 +1,194 @@
+﻿@{
+    ViewData["Title"] = "Home";
+    var username = ViewData["Username"] as string;
+    var role = ViewData["Role"] as string;
+    string reportController;
+    string reportAction;
+
+    // Logic for Report Issues card
+    if (string.IsNullOrEmpty(username))
+    {
+        reportController = "Auth";
+        reportAction = "Login";
+    }
+    else if (role == "Admin")
+    {
+        reportController = "Issue";
+        reportAction = "AllList"; // Admin sees all issues
+    }
+    else
+    {
+        reportController = "Issue";
+        reportAction = "Report"; // User sees only their issues
+    }
+
+    // NEW LOGIC for Local Events card
+    string eventController = "Event";
+    string eventAction;
+
+    if (role == "Admin")
+    {
+        eventAction = "AdminIndex"; // Admin goes to the management page
+    }
+    else
+    {
+        // Not logged in (handled by the User action) or logged in as a regular User
+        eventAction = "Index"; // User (or Guest) goes to the public listing page
+    }
+
+    // 👇 NEW LOGIC FOR SERVICE REQUESTS CARD 👇
+    string serviceRequestAction;
+
+    if (role == "Admin")
+    {
+        serviceRequestAction = "AdminIndex"; // Redirect Admin to the full Admin view
+    }
+    else
+    {
+        serviceRequestAction = "Dashboard"; // All other users go to the general Dashboard
+    }
+}
+
+<style>
+    /* ... existing styles ... */
+
+    .featured-card {
+        /* ... existing styles ... */
+        transition: transform 0.3s ease-in-out;
+        /* Add transition for a smooth animation */
+    }
+
+    .featured-card:hover {
+        transform: scale(1.05);
+        /* Zoom in by 5% on hover */
+    }
+
+    /* 👇 MODIFICATION: Apply transition to Quick Actions cards (.card-item) 👇 */
+    .card-item {
+        transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        /* Added box-shadow transition for completeness */
+    }
+
+    .card-item:not(.uc-card):hover {
+        transform: scale(1.05);
+        /* Zoom in by 5% on hover */
+        /* You might want to add a light shadow to active cards on hover too */
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    /* 👆 MODIFICATION END 👆 */
+
+
+    /* Additional styles for the image within the card to prevent overflow */
+    .featured-card img {
+        display: block;
+        width: 100%;
+        height: auto;
+        border-radius: 10px 10px 0 0;
+    }
+
+    /* Restored styles for the under construction overlay */
+    .uc-card {
+        position: relative;
+        /* This is essential for positioning the overlay correctly */
+        pointer-events: none;
+    }
+
+    .uc-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        /* Scales the image to fit without stretching */
+        z-index: 10;
+        /* Ensures the image is on top of the card content */
+        pointer-events: none;
+        /* Allows mouse events to pass through to the element underneath */
+        opacity: 0.8;
+        /* Makes the overlay slightly transparent to see the card below */
+    }
+</style>
+
+<div class="video-container animated-video">
+    <video autoplay muted loop playsinline class="video-background">
+        <source src="~/images/Cinematic.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+    <img src="~/images/ACBYDVector.png" alt="ACBYD Vector Logo" class="video-overlay-image">
+</div>
+
+<section class="main-content">
+    <div class="container text-center">
+        <h2>Quick Actions</h2>
+        <p class="mb-4">Select a service below to get started.</p>
+        <div class="card-container">
+
+            <a asp-controller="@reportController" asp-action="@reportAction" class="card-item text-decoration-none"
+                style="--delay: 0.2s;">
+                <div class="icon-circle">
+                    <img src="~/images/warning.png" alt="Report Issues" />
+                </div>
+                <h4 class="card-title">Report Issues</h4>
+                <p class="card-text text-muted">Submit a report for potholes, streetlights, and more.</p>
+            </a>
+
+            <a asp-controller="@eventController" asp-action="@eventAction" class="card-item text-decoration-none"
+                style="--delay: 0.4s;">
+                <div class="icon-circle">
+                    <img src="~/images/calendar.png" alt="Local Events" />
+                </div>
+                <h4 class="card-title">Local Events & Announcements</h4>
+                <p class="card-text text-muted">Find out what's happening in your neighborhood.</p>
+            </a>
+
+            @* 👇 MODIFIED LINK: Uses the new serviceRequestAction variable 👇 *@
+            <a asp-controller="ServiceRequest" asp-action="@serviceRequestAction" class="card-item text-decoration-none"
+                style="--delay: 0.6s;">
+                <div class="icon-circle">
+                    <img src="~/images/tools.png" alt="Service Requests" />
+                </div>
+                <h4 class="card-title">Service Requests Status</h4>
+                <p class="card-text text-muted">Check the status of your submitted service requests.</p>
+            </a>
+
+
+        </div>
+    </div>
+</section>
+
+@* <section class="featured-section">
+    <div class="container">
+        <div class="featured-header text-center">
+            <h3>Latest News & Updates</h3>
+        </div>
+        <div class="featured-cards-container">
+            <div class="featured-card" style="animation-delay: 0.8s;">
+                <img src="~/images/garden.png" alt="News Image 1" />
+                <div class="featured-card-body">
+                    <h4>City announces Botanical Gardens Park development</h4>
+                    <p>A new park is planned for the downtown area, featuring new recreational facilities and green
+                        spaces for the community.</p>
+                </div>
+            </div>
+            <div class="featured-card" style="animation-delay: 1.0s;">
+                <img src="~/images/finance.png" alt="News Image 2" />
+                <div class="featured-card-body">
+                    <h4>Public meeting for upcoming budget</h4>
+                    <p>Residents are invited to attend a public meeting to provide feedback on the city's proposed
+                        budget for the next fiscal year.</p>
+                </div>
+            </div>
+            <div class="featured-card" style="animation-delay: 1.2s;">
+                <img src="~/images/road.png" alt="News Image 3" />
+                <div class="featured-card-body">
+                    <h4>Road closures due to construction</h4>
+                    <p>Several major roads will be closed throughout the N2 for a new infrastructure project. Please
+                        plan your routes
+                        accordingly.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section> *@
