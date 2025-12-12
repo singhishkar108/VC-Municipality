@@ -183,10 +183,10 @@ The application will launch. You should see a message in the console indicating 
 
 #### Intelligent Recommendation System (IRS)
 
-| Component                     | Functionality                                                                                                                                                                                          |
-| :---------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
-| **Search Tracking**           | Anonymously tracks user search patterns (category and date queries) to build both user-specific and global preference profiles.                                                                        |
-| **Recommendation Generation** | Calculates a relevance score for each event based on search tracking data, subsequently returning the **top N (default 5)** highest-ranked events as personalized or popularity-based recommendations. |     |
+| Component | Functionality |
+| :--- | :--- |
+| **Search Tracking** | Anonymously tracks user search patterns (category and date queries) to build both user-specific and global preference profiles. |
+| **Recommendation Generation** | Calculates a relevance score for each event based on search tracking data, subsequently returning the **top N (default 5)** highest-ranked events as personalized or popularity-based recommendations. |
 
 ### 5. Service Request Status Management (Part 3 Focus)
 
