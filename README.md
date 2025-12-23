@@ -11,13 +11,14 @@
 🧭 1. [**Introduction**](#-1-introduction)<br>
 💻 2. [**Setting Up the Project Locally**](#-2-setting-up-the-project-locally)<br>
 ✅ 3. [**Features and Functionality**](#-3-features-and-functionality)<br>
-🔐 4. [**User & Admin Navigation**](#-4-user--admin-navigation)<br>
-🏗️ 5. [**Architecture**](#️-5-architecture)<br>
-♻️ 6. [**Changelog**](#️-6-changelog)<br>
-👥 7. [**Author and Contributions**](#-7-author-and-contributions)<br>
-⚖️ 8. [**MIT License**](#️-8-mit-license)<br>
-❓ 9. [**Frequently Asked Questions (FAQ)**](#-9-frequently-asked-questions-faq)<br>
-📚 10. [**References**](#-10-references)<br>
+🖼️ 4. [**Screenshots**](#️-4-screenshots)<br>
+🔐 5. [**User & Admin Navigation**](#-5-user--admin-navigation)<br>
+🏗️ 6. [**Architecture**](#️-6-architecture)<br>
+♻️ 7. [**Changelog**](#️-7-changelog)<br>
+👥 8. [**Author and Contributions**](#-8-author-and-contributions)<br>
+⚖️ 9. [**MIT License**](#️-9-mit-license)<br>
+❓ 10. [**Frequently Asked Questions (FAQ)**](#-10-frequently-asked-questions-faq)<br>
+📚 11. [**References**](#-11-references)<br>
 
 ---
 
@@ -183,9 +184,9 @@ The application will launch. You should see a message in the console indicating 
 
 #### Intelligent Recommendation System (IRS)
 
-| Component | Functionality |
-| :--- | :--- |
-| **Search Tracking** | Anonymously tracks user search patterns (category and date queries) to build both user-specific and global preference profiles. |
+| Component                     | Functionality                                                                                                                                                                                          |
+| :---------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Search Tracking**           | Anonymously tracks user search patterns (category and date queries) to build both user-specific and global preference profiles.                                                                        |
 | **Recommendation Generation** | Calculates a relevance score for each event based on search tracking data, subsequently returning the **top N (default 5)** highest-ranked events as personalized or popularity-based recommendations. |
 
 ### 5. Service Request Status Management (Part 3 Focus)
@@ -205,7 +206,22 @@ The application will launch. You should see a message in the console indicating 
 
 ---
 
-## 🔐 4. User & Admin Navigation
+## 🖼️ 4. Screenshots
+
+|             Heading              |                  Image / Screenshots                   |
+| :------------------------------: | :----------------------------------------------------: |
+|          **Home Page**           |              ![HomePage](Assets/Home.png)              |
+|        **Report Issues**         |      ![ReportIssuesUser](Assets/ReportIssue.png)       |
+|   **Reported Issues (Admin)**    |   ![ReportedIssuesAdmin](Assets/ReportedIssues.png)    |
+| **Local Events & Announcements** |  ![LocalEvents&Announcements](Assets/LocalEvents.png)  |
+|       **Archived Events**        |      ![ArchivedEvents](Assets/ArchivedEvents.png)      |
+|    **Manage Events (Admin)**     |     ![ManageEventsAdmin](Assets/ManageEvents.png)      |
+|       **Service Requests**       |     ![ServiceRequests](Assets/ServiceRequest.png)      |
+|   **Service Request (Admin)**    | ![ServiceRequestAdmin](Assets/ServiceRequestAdmin.png) |
+
+---
+
+## 🔐 5. User & Admin Navigation
 
 ### User Navigation (Citizen Access)
 
@@ -270,7 +286,7 @@ The application will launch. You should see a message in the console indicating 
 
 ---
 
-## 🏗️ 5. Architecture
+## 🏗️ 6. Architecture
 
 ### Application Structure (ASP.NET Core MVC)
 
@@ -282,7 +298,7 @@ The application code adheres to the **MVC pattern**, which ensures a clear separ
 
 ---
 
-## ♻️ 6. Changelog
+## ♻️ 7. Changelog
 
 This changelog details the architectural and functional updates implemented for Service Request Status (PoE). This focuses on the integration of advanced custom data structures and algorithms to finalize the Service Request Status module.
 
@@ -362,7 +378,7 @@ This enhancement provides administrators with richer, more actionable location i
 
 ---
 
-## 👥 7. Author and Contributions
+## 👥 8. Author and Contributions
 
 ### Primary Developer:
 
@@ -387,7 +403,7 @@ This enhancement provides administrators with richer, more actionable location i
 
 ---
 
-## ⚖️ 8. MIT License
+## ⚖️ 9. MIT License
 
 **Copyright © 2025 Ishkar Singh**<br>
 
@@ -400,7 +416,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 ---
 
-## ❓ 9. Frequently Asked Questions (FAQ)
+## ❓ 10. Frequently Asked Questions (FAQ)
 
 ### 1. What software and knowledge do I need to run the VC Municipality website locally?
 
@@ -484,7 +500,7 @@ For clusters of geographically related service issues, the system utilizes the *
 
 ---
 
-## 📚 10. References
+## 📚 11. References
 
 - **Adam Wilson, n.d. Image: Sunset Cityscape.** [online] _[Unsplash](https://images.unsplash.com/photo-1510783891783-80cda42ebfd2?ixlib=rb-4.1.0&q=85&fm=jpg&crop=entropy&cs=srgb&dl=adam-wilson-1QZYZib7eYs-unsplash.jpg)_ [Accessed 15 October 2025].
 - **Artem Kniaz, n.d. Image: Downtown Traffic.** [online] _[Unsplash](https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.1.0&q=85&fm=jpg&crop=entropy&cs=srgb&dl=artem-kniaz-DqgMHzeio7g-unsplash.jpg)_ [Accessed 15 October 2025].
