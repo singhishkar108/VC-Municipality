@@ -306,7 +306,7 @@ This changelog details the architectural and functional updates implemented for 
 
 The following custom data structures were implemented in the `_serviceRequestService` layer to guarantee high performance and data integrity:
 
-- **Self-Balancing Binary Search Tree (e.g., AVL Tree):**
+- **Self-Balancing Binary Search Tree:**
   - Purpose: Organizes all service requests, indexed primarily by `RequestID`.
   - Impact: Guarantees consistent $O(\log n)$ time complexity for request lookup, insertion, and deletion, preventing performance degradation under heavy load.
 - **Min-Heap (Priority Queue):**
@@ -323,7 +323,7 @@ These algorithms leverage the new structures to enhance operational efficiency:
 - **Breadth-First Search (BFS) / Graph Traversal:**
   - Purpose: Traverses the status Graph to determine valid workflow paths.
   - Impact: Used in `GetValidNextStatuses()` to dynamically present administrators with only the logical next steps, ensuring workflow compliance and clear visibility.
-- **Minimum Spanning Tree (MST) Algorithm (e.g., Prim's or Kruskal's):**
+- **Minimum Spanning Tree (MST) Algorithm:**
   - Purpose: Calculates the most cost-effective travel route for field crews when multiple related service issues are clustered geographically.
   - Impact: Optimizes resource deployment and minimizes operational costs by finding the shortest total-distance network connecting required repair points.
 
