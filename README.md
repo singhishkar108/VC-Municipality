@@ -212,7 +212,7 @@ The application will launch. You should see a message in the console indicating 
 | :------------------------------: | :----------------------------------------------------: |
 |          **Home Page**           |              ![HomePage](Assets/Home.png)              |
 |        **Report Issues**         |      ![ReportIssuesUser](Assets/ReportIssue.png)       |
-|   **Reported Issues (Admin)**    |   ![ReportedIssuesAdmin](Assets/ReportedIssues.png)    |
+|   **Reported Issues (Admin)**    |   ![ReportedIssuesAdmin](Assets/ReportedIssues1.png)    |
 | **Local Events & Announcements** |  ![LocalEvents&Announcements](Assets/LocalEvents.png)  |
 |       **Archived Events**        |      ![ArchivedEvents](Assets/ArchivedEvents.png)      |
 |    **Manage Events (Admin)**     |     ![ManageEventsAdmin](Assets/ManageEvents.png)      |
